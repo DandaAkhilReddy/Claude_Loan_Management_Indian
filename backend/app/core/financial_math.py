@@ -214,6 +214,8 @@ def reverse_emi_tenure(
     if denominator <= 0:
         return 0  # EMI too small to ever pay off
 
+    # NOTE: Intentional precision tradeoff — Decimal→float for math.log().
+    # Acceptable here because the result is rounded to an integer month count.
     import math
     n = math.log(float(emi / denominator)) / math.log(float(1 + r))
     return max(1, round(n))

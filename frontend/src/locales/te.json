@@ -53,5 +53,38 @@
     "monthlyEmi": "నెలవారీ EMI",
     "totalInterest": "మొత్తం వడ్డీ",
     "totalPayment": "మొత్తం చెల్లింపు"
+  },
+  "scanner": {
+    "title": "లోన్ డాక్యుమెంట్ స్కాన్ చేయి",
+    "dropActive": "మీ డాక్యుమెంట్ ఇక్కడ వదలండి",
+    "dropPrompt": "మీ లోన్ డాక్యుమెంట్‌ను లాగి వదలండి",
+    "formatHint": "PDF, PNG, లేదా JPG — గరిష్టంగా 10MB",
+    "uploading": "అప్‌లోడ్ అవుతోంది...",
+    "uploadFailed": "అప్‌లోడ్ విఫలమైంది. మళ్ళీ ప్రయత్నించండి.",
+    "extractedInfo": "సేకరించిన సమాచారం",
+    "confirmCreate": "నిర్ధారించి లోన్ సృష్టించు",
+    "creatingLoan": "లోన్ సృష్టిస్తోంది...",
+    "statusUploaded": "అప్‌లోడ్ అయింది",
+    "statusProcessing": "ప్రాసెస్ అవుతోంది...",
+    "statusCompleted": "పూర్తయింది",
+    "statusReviewNeeded": "సమీక్ష అవసరం",
+    "statusFailed": "విఫలమైంది"
+  },
+  "loanDetail": {
+    "notFound": "లోన్ కనుగొనబడలేదు",
+    "backToLoans": "లోన్ల వద్దకు వెనుకకు",
+    "originalAmount": "అసలు మొత్తం",
+    "outstanding": "బాకీ",
+    "monthlyEmi": "నెలవారీ EMI",
+    "remaining": "మిగిలిన",
+    "paidPercent": "{{percent}}% చెల్లించారు",
+    "amountRemaining": "{{amount}} మిగిలి ఉంది",
+    "amortizationSchedule": "వాయిదా షెడ్యూల్",
+    "totalInterest": "మొత్తం వడ్డీ",
+    "month": "నెల",
+    "emi": "EMI",
+    "principal": "అసలు",
+    "interest": "వడ్డీ",
+    "balance": "మిగిలిన మొత్తం"
   }
 }

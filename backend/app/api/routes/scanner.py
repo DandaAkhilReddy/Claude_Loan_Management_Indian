@@ -54,7 +54,7 @@ async def upload_document(
 
     # Trigger OCR (in production, this would be async via Azure Functions)
     try:
-        await repo.update_status(job.id, "processing")
+        await repo.update_status(job.id, user.id, "processing")
         scanner = ScannerService()
         fields = await scanner.analyze_document(blob_url)
 
@@ -63,12 +63,13 @@ async def upload_document(
 
         await repo.update_status(
             job.id,
+            user.id,
             "completed" if fields else "review_needed",
             extracted_fields=extracted,
             confidence_scores=confidences,
         )
     except Exception as e:
-        await repo.update_status(job.id, "failed", error_message=str(e))
+        await repo.update_status(job.id, user.id, "failed", error_message=str(e))
 
     return UploadResponse(job_id=job.id)
 
@@ -137,6 +138,6 @@ async def confirm_scan(
         source_scan_id=job.id,
     )
 
-    await scan_repo.update_status(job.id, "completed", created_loan_id=loan.id)
+    await scan_repo.update_status(job.id, user.id, "completed", created_loan_id=loan.id)
 
     return {"loan_id": str(loan.id), "message": "Loan created from scan"}

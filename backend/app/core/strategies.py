@@ -230,11 +230,12 @@ class ProportionalStrategy(RepaymentStrategy):
             allocation[loan.loan_id] = min(share, loan.outstanding_principal)
             allocated += allocation[loan.loan_id]
 
-        # Assign rounding remainder to largest balance
+        # Assign rounding remainder to largest balance, capped at outstanding principal
         remainder = extra_budget - allocated
         if remainder > 0 and active_loans:
             largest = max(active_loans, key=lambda l: l.outstanding_principal)
-            allocation[largest.loan_id] = allocation.get(largest.loan_id, Decimal("0")) + remainder
+            current = allocation.get(largest.loan_id, Decimal("0"))
+            allocation[largest.loan_id] = current + min(remainder, largest.outstanding_principal - current)
 
         return allocation
 

@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useDropzone } from "react-dropzone";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Upload, FileText, CheckCircle, AlertCircle, Loader2 } from "lucide-react";
@@ -7,15 +8,16 @@ import api from "../lib/api";
 import type { ScanJob } from "../types";
 
 const STATUS_CONFIG = {
-  uploaded: { icon: Upload, color: "text-blue-500", label: "Uploaded" },
-  processing: { icon: Loader2, color: "text-yellow-500", label: "Processing..." },
-  completed: { icon: CheckCircle, color: "text-green-500", label: "Completed" },
-  review_needed: { icon: AlertCircle, color: "text-orange-500", label: "Review Needed" },
-  failed: { icon: AlertCircle, color: "text-red-500", label: "Failed" },
+  uploaded: { icon: Upload, color: "text-blue-500", key: "scanner.statusUploaded" },
+  processing: { icon: Loader2, color: "text-yellow-500", key: "scanner.statusProcessing" },
+  completed: { icon: CheckCircle, color: "text-green-500", key: "scanner.statusCompleted" },
+  review_needed: { icon: AlertCircle, color: "text-orange-500", key: "scanner.statusReviewNeeded" },
+  failed: { icon: AlertCircle, color: "text-red-500", key: "scanner.statusFailed" },
 };
 
 export function ScanDocumentPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [jobId, setJobId] = useState<string | null>(null);
   const [editFields, setEditFields] = useState<Record<string, string>>({});
 
@@ -86,7 +88,7 @@ export function ScanDocumentPage() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      <h1 className="text-xl font-bold text-gray-900">Scan Loan Document</h1>
+      <h1 className="text-xl font-bold text-gray-900">{t("scanner.title")}</h1>
 
       {/* Upload Zone */}
       {!jobId && (
@@ -99,11 +101,11 @@ export function ScanDocumentPage() {
           <input {...getInputProps()} />
           <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
           <p className="font-medium text-gray-700 mb-1">
-            {isDragActive ? "Drop your document here" : "Drag & drop your loan document"}
+            {isDragActive ? t("scanner.dropActive") : t("scanner.dropPrompt")}
           </p>
-          <p className="text-sm text-gray-400">PDF, PNG, or JPG up to 10MB</p>
-          {uploadMutation.isPending && <p className="mt-3 text-blue-600">Uploading...</p>}
-          {uploadMutation.isError && <p className="mt-3 text-red-500">Upload failed. Try again.</p>}
+          <p className="text-sm text-gray-400">{t("scanner.formatHint")}</p>
+          {uploadMutation.isPending && <p className="mt-3 text-blue-600">{t("scanner.uploading")}</p>}
+          {uploadMutation.isError && <p className="mt-3 text-red-500">{t("scanner.uploadFailed")}</p>}
         </div>
       )}
 
@@ -114,7 +116,7 @@ export function ScanDocumentPage() {
             {statusConfig && (
               <>
                 <statusConfig.icon className={`w-6 h-6 ${statusConfig.color} ${scanStatus.status === "processing" ? "animate-spin" : ""}`} />
-                <span className={`font-medium ${statusConfig.color}`}>{statusConfig.label}</span>
+                <span className={`font-medium ${statusConfig.color}`}>{t(statusConfig.key)}</span>
               </>
             )}
           </div>
@@ -126,7 +128,7 @@ export function ScanDocumentPage() {
           {/* Extracted Fields */}
           {scanStatus.extracted_fields && (
             <div className="space-y-3">
-              <h3 className="font-medium text-gray-900">Extracted Information</h3>
+              <h3 className="font-medium text-gray-900">{t("scanner.extractedInfo")}</h3>
               {scanStatus.extracted_fields.map((field) => (
                 <div key={field.field_name} className="flex items-center gap-3">
                   <label className="w-36 text-sm text-gray-500 capitalize">
@@ -152,7 +154,7 @@ export function ScanDocumentPage() {
                 disabled={confirmMutation.isPending}
                 className="w-full mt-4 py-2.5 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50"
               >
-                {confirmMutation.isPending ? "Creating Loan..." : "Confirm & Create Loan"}
+                {confirmMutation.isPending ? t("scanner.creatingLoan") : t("scanner.confirmCreate")}
               </button>
             </div>
           )}

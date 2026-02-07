@@ -77,7 +77,7 @@ async def delete_loan(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """Delete a loan (soft delete by marking as closed)."""
+    """Delete a loan permanently."""
     repo = LoanRepository(db)
     deleted = await repo.delete(loan_id, user.id)
     if not deleted:

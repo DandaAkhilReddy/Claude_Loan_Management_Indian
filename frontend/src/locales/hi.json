@@ -53,5 +53,38 @@
     "monthlyEmi": "मासिक EMI",
     "totalInterest": "कुल ब्याज",
     "totalPayment": "कुल भुगतान"
+  },
+  "scanner": {
+    "title": "लोन दस्तावेज़ स्कैन करें",
+    "dropActive": "अपना दस्तावेज़ यहाँ छोड़ें",
+    "dropPrompt": "अपना लोन दस्तावेज़ खींचें और छोड़ें",
+    "formatHint": "PDF, PNG, या JPG — अधिकतम 10MB",
+    "uploading": "अपलोड हो रहा है...",
+    "uploadFailed": "अपलोड विफल। पुनः प्रयास करें।",
+    "extractedInfo": "निकाली गई जानकारी",
+    "confirmCreate": "पुष्टि करें और लोन बनाएं",
+    "creatingLoan": "लोन बना रहे हैं...",
+    "statusUploaded": "अपलोड हुआ",
+    "statusProcessing": "प्रोसेस हो रहा है...",
+    "statusCompleted": "पूर्ण",
+    "statusReviewNeeded": "समीक्षा आवश्यक",
+    "statusFailed": "विफल"
+  },
+  "loanDetail": {
+    "notFound": "लोन नहीं मिला",
+    "backToLoans": "लोन पर वापस जाएं",
+    "originalAmount": "मूल राशि",
+    "outstanding": "बकाया",
+    "monthlyEmi": "मासिक EMI",
+    "remaining": "शेष",
+    "paidPercent": "{{percent}}% चुकाया",
+    "amountRemaining": "{{amount}} शेष",
+    "amortizationSchedule": "किस्त अनुसूची",
+    "totalInterest": "कुल ब्याज",
+    "month": "महीना",
+    "emi": "EMI",
+    "principal": "मूलधन",
+    "interest": "ब्याज",
+    "balance": "शेष राशि"
   }
 }

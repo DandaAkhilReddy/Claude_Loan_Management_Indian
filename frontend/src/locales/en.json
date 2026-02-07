@@ -53,5 +53,38 @@
     "monthlyEmi": "Monthly EMI",
     "totalInterest": "Total Interest",
     "totalPayment": "Total Payment"
+  },
+  "scanner": {
+    "title": "Scan Loan Document",
+    "dropActive": "Drop your document here",
+    "dropPrompt": "Drag & drop your loan document",
+    "formatHint": "PDF, PNG, or JPG up to 10MB",
+    "uploading": "Uploading...",
+    "uploadFailed": "Upload failed. Try again.",
+    "extractedInfo": "Extracted Information",
+    "confirmCreate": "Confirm & Create Loan",
+    "creatingLoan": "Creating Loan...",
+    "statusUploaded": "Uploaded",
+    "statusProcessing": "Processing...",
+    "statusCompleted": "Completed",
+    "statusReviewNeeded": "Review Needed",
+    "statusFailed": "Failed"
+  },
+  "loanDetail": {
+    "notFound": "Loan not found",
+    "backToLoans": "Back to Loans",
+    "originalAmount": "Original Amount",
+    "outstanding": "Outstanding",
+    "monthlyEmi": "Monthly EMI",
+    "remaining": "Remaining",
+    "paidPercent": "{{percent}}% paid",
+    "amountRemaining": "{{amount}} remaining",
+    "amortizationSchedule": "Amortization Schedule",
+    "totalInterest": "Total interest",
+    "month": "Month",
+    "emi": "EMI",
+    "principal": "Principal",
+    "interest": "Interest",
+    "balance": "Balance"
   }
 }

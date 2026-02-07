@@ -29,8 +29,10 @@ class ScanJobRepository:
         )
         return result.scalar_one_or_none()
 
-    async def update_status(self, job_id: uuid.UUID, status: str, **kwargs) -> ScanJob | None:
-        result = await self.session.execute(select(ScanJob).where(ScanJob.id == job_id))
+    async def update_status(self, job_id: uuid.UUID, user_id: uuid.UUID, status: str, **kwargs) -> ScanJob | None:
+        result = await self.session.execute(
+            select(ScanJob).where(ScanJob.id == job_id, ScanJob.user_id == user_id)
+        )
         job = result.scalar_one_or_none()
         if not job:
             return None

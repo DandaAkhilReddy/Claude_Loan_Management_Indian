@@ -6,6 +6,7 @@ Extracts tables + text and post-processes with regex for Indian banks.
 
 import re
 import time
+import asyncio
 import logging
 from dataclasses import dataclass
 
@@ -134,11 +135,13 @@ class ScannerService:
 
         start_time = time.time()
 
-        poller = self.client.begin_analyze_document(
+        # Azure SDK sync client blocks; offload to thread pool
+        poller = await asyncio.to_thread(
+            self.client.begin_analyze_document,
             "prebuilt-layout",
             AnalyzeDocumentRequest(url_source=document_url),
         )
-        result = poller.result()
+        result = await asyncio.to_thread(poller.result)
 
         # Combine all text content
         full_text = ""
@@ -212,12 +215,14 @@ class ScannerService:
 
         start_time = time.time()
 
-        poller = self.client.begin_analyze_document(
+        # Azure SDK sync client blocks; offload to thread pool
+        poller = await asyncio.to_thread(
+            self.client.begin_analyze_document,
             "prebuilt-layout",
             body=content,
             content_type=content_type,
         )
-        result = poller.result()
+        result = await asyncio.to_thread(poller.result)
 
         full_text = result.content or ""
         table_text = ""

@@ -45,7 +45,10 @@ class TTSService:
         if not self.configured:
             return None
 
-        voice = VOICE_MAP.get(language, VOICE_MAP["en"])
+        # Validate language against allowlist to prevent XML injection in SSML
+        if language not in VOICE_MAP:
+            language = "en"
+        voice = VOICE_MAP[language]
         endpoint = TTS_ENDPOINT.format(region=self.region)
 
         safe_text = xml_escape(text)

@@ -24,13 +24,31 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
 
 
 class RateLimitMiddleware(BaseHTTPMiddleware):
-    """Simple in-memory rate limiter for OCR endpoints."""
+    """In-memory sliding-window rate limiter for OCR endpoints.
+
+    NOTE: This is per-process. In a multi-worker deployment, replace with
+    Redis-backed rate limiting (e.g. slowapi with Redis storage).
+    """
+
+    _MAX_TRACKED_IPS = 10_000
+    _PRUNE_INTERVAL = 300  # seconds
 
     def __init__(self, app, max_requests: int = 100, window_seconds: int = 60):
         super().__init__(app)
         self.max_requests = max_requests
         self.window = window_seconds
         self.requests: dict[str, list[float]] = defaultdict(list)
+        self._last_prune = time.time()
+
+    def _prune_expired(self, now: float) -> None:
+        """Remove IPs with no recent requests to prevent memory leaks."""
+        expired = [
+            ip for ip, ts in self.requests.items()
+            if not ts or now - ts[-1] > self.window
+        ]
+        for ip in expired:
+            del self.requests[ip]
+        self._last_prune = now
 
     async def dispatch(self, request: Request, call_next):
         # Only rate-limit scanner upload endpoint
@@ -38,7 +56,21 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
             client_ip = request.client.host if request.client else "unknown"
             now = time.time()
 
-            # Clean old entries
+            # Periodic prune to prevent unbounded memory growth
+            if now - self._last_prune > self._PRUNE_INTERVAL:
+                self._prune_expired(now)
+
+            # Safety valve: cap tracked IPs
+            if len(self.requests) > self._MAX_TRACKED_IPS:
+                self._prune_expired(now)
+                if len(self.requests) > self._MAX_TRACKED_IPS:
+                    logger.warning("Rate limiter: too many tracked IPs")
+                    return JSONResponse(
+                        status_code=503,
+                        content={"detail": "Service temporarily overloaded."},
+                    )
+
+            # Clean old entries for this IP
             self.requests[client_ip] = [
                 t for t in self.requests[client_ip] if now - t < self.window
             ]
