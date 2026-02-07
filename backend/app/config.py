@@ -34,6 +34,7 @@ class Settings(BaseSettings):
     # App
     environment: str = "development"
     log_level: str = "INFO"
+    cors_origins: str = "http://localhost:5173"  # comma-separated in production
 
     class Config:
         env_file = ".env"

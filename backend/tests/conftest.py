@@ -2,12 +2,125 @@
 
 Provides reusable loan snapshots, sample data, and helper factories
 used across test_financial_math, test_strategies, and test_optimization.
+Also provides API-level fixtures for route testing via httpx.AsyncClient.
 """
+
+import sys
+import uuid
+from datetime import datetime, timezone
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 from decimal import Decimal
+from httpx import ASGITransport, AsyncClient
+
+# Mock Azure SDK modules that are not installed in the test environment
+for _mod in [
+    "azure", "azure.ai", "azure.ai.documentintelligence",
+    "azure.ai.documentintelligence.models", "azure.core",
+    "azure.core.credentials", "azure.storage", "azure.storage.blob",
+    "azure.cognitiveservices", "azure.cognitiveservices.speech",
+    "firebase_admin", "firebase_admin.auth",
+    "openai",
+]:
+    if _mod not in sys.modules:
+        sys.modules[_mod] = MagicMock()
 
 from app.core.strategies import LoanSnapshot
+from app.db.models import User, Loan
+from app.api.deps import get_current_user, get_optional_user
+from app.db.session import get_db
+
+
+# ---------------------------------------------------------------------------
+# Mock user / DB fixtures for API testing
+# ---------------------------------------------------------------------------
+
+MOCK_USER_ID = uuid.UUID("00000000-0000-4000-a000-000000000001")
+MOCK_USER_FIREBASE_UID = "firebase_test_user_123"
+
+
+@pytest.fixture
+def mock_user() -> MagicMock:
+    """A mock User ORM instance for dependency injection."""
+    user = MagicMock(spec=User)
+    user.id = MOCK_USER_ID
+    user.firebase_uid = MOCK_USER_FIREBASE_UID
+    user.email = "test@example.com"
+    user.phone = "+919876543210"
+    user.display_name = "Test User"
+    user.preferred_language = "en"
+    user.tax_regime = "old"
+    user.annual_income = 1200000.0
+    user.created_at = datetime(2025, 1, 1, tzinfo=timezone.utc)
+    user.updated_at = datetime(2025, 1, 1, tzinfo=timezone.utc)
+    return user
+
+
+@pytest.fixture
+def mock_db_session():
+    """AsyncMock database session."""
+    session = AsyncMock()
+    session.commit = AsyncMock()
+    session.rollback = AsyncMock()
+    session.close = AsyncMock()
+    return session
+
+
+@pytest.fixture
+def mock_loan() -> MagicMock:
+    """A mock Loan ORM instance."""
+    loan = MagicMock(spec=Loan)
+    loan.id = uuid.UUID("00000000-0000-4000-a000-000000000010")
+    loan.user_id = MOCK_USER_ID
+    loan.bank_name = "SBI"
+    loan.loan_type = "home"
+    loan.principal_amount = 5000000.0
+    loan.outstanding_principal = 4500000.0
+    loan.interest_rate = 8.5
+    loan.interest_rate_type = "floating"
+    loan.tenure_months = 240
+    loan.remaining_tenure_months = 220
+    loan.emi_amount = 43391.0
+    loan.emi_due_date = 5
+    loan.prepayment_penalty_pct = 0.0
+    loan.foreclosure_charges_pct = 0.0
+    loan.eligible_80c = True
+    loan.eligible_24b = True
+    loan.eligible_80e = False
+    loan.eligible_80eea = False
+    loan.disbursement_date = None
+    loan.status = "active"
+    loan.source = "manual"
+    loan.source_scan_id = None
+    loan.created_at = datetime(2025, 1, 1, tzinfo=timezone.utc)
+    loan.updated_at = datetime(2025, 1, 1, tzinfo=timezone.utc)
+    return loan
+
+
+@pytest.fixture
+async def async_client(mock_user, mock_db_session):
+    """httpx AsyncClient wired to the FastAPI app with mocked auth + DB."""
+    from app.main import app
+
+    async def _override_get_current_user():
+        return mock_user
+
+    async def _override_get_optional_user():
+        return mock_user
+
+    async def _override_get_db():
+        yield mock_db_session
+
+    app.dependency_overrides[get_current_user] = _override_get_current_user
+    app.dependency_overrides[get_optional_user] = _override_get_optional_user
+    app.dependency_overrides[get_db] = _override_get_db
+
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        yield client
+
+    app.dependency_overrides.clear()
 
 
 # ---------------------------------------------------------------------------
