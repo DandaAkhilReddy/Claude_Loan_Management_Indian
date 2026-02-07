@@ -1,0 +1,57 @@
+{
+  "app": {
+    "title": "Loan Optimizer",
+    "tagline": "Smart Repayment for Indian Loans"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "loans": "My Loans",
+    "scanner": "Scan Document",
+    "optimizer": "Optimizer",
+    "emiCalculator": "EMI Calculator",
+    "settings": "Settings",
+    "login": "Login",
+    "logout": "Logout"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Something went wrong",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "confirm": "Confirm",
+    "back": "Back",
+    "next": "Next",
+    "currency": "₹"
+  },
+  "dashboard": {
+    "totalDebt": "Total Outstanding Debt",
+    "monthlyEmi": "Monthly EMI Outgo",
+    "debtFreeBy": "Debt-Free By",
+    "addLoan": "Add Loan",
+    "scanDoc": "Scan Document",
+    "runOptimizer": "Run Optimizer"
+  },
+  "optimizer": {
+    "title": "Smart Repayment Optimizer",
+    "selectLoans": "Select Loans to Optimize",
+    "setBudget": "Set Your Extra Budget",
+    "choosePriority": "Choose Your Priority",
+    "viewResults": "View Results",
+    "avalanche": "Pay Least Interest",
+    "snowball": "Fastest Quick Wins",
+    "smartHybrid": "Smart Hybrid (Recommended)",
+    "interestSaved": "Interest Saved",
+    "monthsSaved": "Months Saved",
+    "savePlan": "Save This Plan"
+  },
+  "emi": {
+    "title": "EMI Calculator",
+    "principal": "Loan Amount",
+    "rate": "Interest Rate",
+    "tenure": "Tenure (Years)",
+    "monthlyEmi": "Monthly EMI",
+    "totalInterest": "Total Interest",
+    "totalPayment": "Total Payment"
+  }
+}

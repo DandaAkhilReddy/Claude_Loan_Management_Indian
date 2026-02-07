@@ -1,0 +1,57 @@
+{
+  "app": {
+    "title": "लोन ऑप्टिमाइज़र",
+    "tagline": "भारतीय लोन के लिए स्मार्ट रीपेमेंट"
+  },
+  "nav": {
+    "dashboard": "डैशबोर्ड",
+    "loans": "मेरे लोन",
+    "scanner": "दस्तावेज़ स्कैन करें",
+    "optimizer": "ऑप्टिमाइज़र",
+    "emiCalculator": "EMI कैलकुलेटर",
+    "settings": "सेटिंग्स",
+    "login": "लॉगिन",
+    "logout": "लॉगआउट"
+  },
+  "common": {
+    "loading": "लोड हो रहा है...",
+    "error": "कुछ गलत हो गया",
+    "save": "सहेजें",
+    "cancel": "रद्द करें",
+    "delete": "हटाएं",
+    "confirm": "पुष्टि करें",
+    "back": "वापस",
+    "next": "अगला",
+    "currency": "₹"
+  },
+  "dashboard": {
+    "totalDebt": "कुल बकाया कर्ज़",
+    "monthlyEmi": "मासिक EMI खर्च",
+    "debtFreeBy": "कर्ज़ मुक्ति तिथि",
+    "addLoan": "लोन जोड़ें",
+    "scanDoc": "दस्तावेज़ स्कैन करें",
+    "runOptimizer": "ऑप्टिमाइज़र चलाएं"
+  },
+  "optimizer": {
+    "title": "स्मार्ट रीपेमेंट ऑप्टिमाइज़र",
+    "selectLoans": "ऑप्टिमाइज़ करने के लिए लोन चुनें",
+    "setBudget": "अपना अतिरिक्त बजट सेट करें",
+    "choosePriority": "अपनी प्राथमिकता चुनें",
+    "viewResults": "परिणाम देखें",
+    "avalanche": "सबसे कम ब्याज दें",
+    "snowball": "जल्दी छोटे लोन खत्म करें",
+    "smartHybrid": "स्मार्ट हाइब्रिड (अनुशंसित)",
+    "interestSaved": "ब्याज बचत",
+    "monthsSaved": "महीने बचे",
+    "savePlan": "यह प्लान सहेजें"
+  },
+  "emi": {
+    "title": "EMI कैलकुलेटर",
+    "principal": "लोन राशि",
+    "rate": "ब्याज दर",
+    "tenure": "अवधि (वर्ष)",
+    "monthlyEmi": "मासिक EMI",
+    "totalInterest": "कुल ब्याज",
+    "totalPayment": "कुल भुगतान"
+  }
+}
