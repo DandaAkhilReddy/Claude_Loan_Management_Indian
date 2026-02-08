@@ -1,6 +1,6 @@
 """API dependencies — auth, database, services."""
 
-import uuid
+import asyncio
 from fastapi import Depends, HTTPException, Header
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -19,7 +19,7 @@ async def get_current_user(
         raise HTTPException(status_code=401, detail="Invalid authorization header")
 
     token = authorization[7:]
-    claims = verify_firebase_token(token)
+    claims = await asyncio.to_thread(verify_firebase_token, token)
 
     if not claims:
         raise HTTPException(status_code=401, detail="Invalid or expired token")
@@ -43,7 +43,7 @@ async def get_optional_user(
         return None
 
     token = authorization[7:]
-    claims = verify_firebase_token(token)
+    claims = await asyncio.to_thread(verify_firebase_token, token)
     if not claims:
         return None
 

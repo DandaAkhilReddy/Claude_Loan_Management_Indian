@@ -5,7 +5,7 @@ import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.routes import auth, loans, optimizer, scanner, emi, ai_insights
+from app.api.routes import auth, loans, optimizer, scanner, emi, ai_insights, user
 from app.api.middleware import RequestLoggingMiddleware, RateLimitMiddleware, GlobalErrorHandler
 from app.config import settings
 
@@ -36,6 +36,7 @@ app.include_router(optimizer.router)
 app.include_router(scanner.router)
 app.include_router(emi.router)
 app.include_router(ai_insights.router)
+app.include_router(user.router)
 
 
 @app.get("/api/health")
@@ -57,3 +58,5 @@ async def readiness_check():
 
     status = "ready" if db_ok else "degraded"
     return {"status": status, "version": "0.1.0", "database": db_ok}
+
+

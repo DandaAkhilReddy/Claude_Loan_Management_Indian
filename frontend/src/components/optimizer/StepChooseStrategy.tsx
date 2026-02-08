@@ -63,14 +63,12 @@ export function StepChooseStrategy({ selected, onChange }: Props) {
                 </span>
                 {s.recommended && (
                   <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-medium">
-                    Recommended
+                    {t("optimizer.strategy.recommended")}
                   </span>
                 )}
               </div>
               <p className="text-sm text-gray-500 mt-0.5">
-                {s.id === "smart_hybrid" && "Post-tax optimized with quick psychological wins"}
-                {s.id === "avalanche" && "Targets highest interest rate first — saves the most money"}
-                {s.id === "snowball" && "Eliminates smallest balance first — fastest quick wins"}
+                {t(`optimizer.strategy.${s.id === "smart_hybrid" ? "smartHybridDesc" : s.id + "Desc"}`)}
               </p>
             </div>
           </label>

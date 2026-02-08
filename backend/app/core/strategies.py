@@ -17,18 +17,21 @@ class LoanSnapshot:
     """Snapshot of a loan at a point in time during optimization."""
     loan_id: str
     bank_name: str
-    loan_type: str  # home/personal/car/education/gold/credit_card
+    loan_type: str  # home/personal/car/education/gold/credit_card/business
     outstanding_principal: Decimal
     interest_rate: Decimal  # Annual %
     emi_amount: Decimal
     remaining_tenure_months: int
     prepayment_penalty_pct: Decimal  # 0 for floating rate (RBI 2014)
     foreclosure_charges_pct: Decimal
-    # Tax benefit fields
+    # Tax benefit fields — India
     eligible_80c: bool = False
     eligible_24b: bool = False
     eligible_80e: bool = False
     eligible_80eea: bool = False
+    # Tax benefit fields — US
+    eligible_mortgage_deduction: bool = False
+    eligible_student_loan_deduction: bool = False
     # Derived
     effective_rate: Decimal = Decimal("0")  # Post-tax rate
     months_to_closure: int = 0  # Estimated months left
@@ -114,11 +117,12 @@ class SnowballStrategy(RepaymentStrategy):
 
 
 class SmartHybridStrategy(RepaymentStrategy):
-    """India-specific smart strategy: post-tax effective rates + psychological bumps.
+    """Country-aware smart strategy: post-tax effective rates + psychological bumps.
 
     Algorithm:
     1. Calculate effective_rate = nominal_rate - tax_benefit_rate
-       Example: Home loan 8.5% with 24(b) at 30% bracket → effective = 5.95%
+       India: Home loan 8.5% with 24(b) at 30% bracket → effective = 5.95%
+       US: Mortgage 7% with itemized deduction at 24% bracket → effective = 5.32%
     2. Sort by effective_rate DESC (avalanche base layer)
     3. Bump any loan within 3 EMIs of closure to TOP (quick win)
     4. Factor in foreclosure_charges (penalizes fixed-rate early payoff)
@@ -127,22 +131,28 @@ class SmartHybridStrategy(RepaymentStrategy):
     name = "smart_hybrid"
     description = "Smart Hybrid (Recommended) — post-tax optimized with quick wins"
 
-    def __init__(self, tax_bracket: Decimal = Decimal("0.30")):
+    def __init__(self, tax_bracket: Decimal = Decimal("0.30"), country: str = "IN"):
         self.tax_bracket = tax_bracket
+        self.country = country
 
     def _calculate_effective_rate(self, loan: LoanSnapshot) -> Decimal:
         """Calculate post-tax effective interest rate."""
         tax_benefit_rate = Decimal("0")
 
-        if loan.eligible_24b:
-            # Section 24(b): Home loan interest deduction
-            tax_benefit_rate = loan.interest_rate * self.tax_bracket
-        elif loan.eligible_80e:
-            # Section 80E: Education loan interest (full deduction)
-            tax_benefit_rate = loan.interest_rate * self.tax_bracket
-        elif loan.eligible_80c:
-            # Section 80C: Principal deduction (partial benefit)
-            tax_benefit_rate = loan.interest_rate * self.tax_bracket * Decimal("0.5")
+        if self.country == "US":
+            # US: Mortgage interest and student loan interest deductions
+            if loan.eligible_mortgage_deduction:
+                tax_benefit_rate = loan.interest_rate * self.tax_bracket
+            elif loan.eligible_student_loan_deduction:
+                tax_benefit_rate = loan.interest_rate * self.tax_bracket
+        else:
+            # India: Sections 80C, 24(b), 80E
+            if loan.eligible_24b:
+                tax_benefit_rate = loan.interest_rate * self.tax_bracket
+            elif loan.eligible_80e:
+                tax_benefit_rate = loan.interest_rate * self.tax_bracket
+            elif loan.eligible_80c:
+                tax_benefit_rate = loan.interest_rate * self.tax_bracket * Decimal("0.5")
 
         effective = loan.interest_rate - tax_benefit_rate
 
@@ -240,12 +250,12 @@ class ProportionalStrategy(RepaymentStrategy):
         return allocation
 
 
-def get_strategy(name: str, tax_bracket: Decimal = Decimal("0.30")) -> RepaymentStrategy:
+def get_strategy(name: str, tax_bracket: Decimal = Decimal("0.30"), country: str = "IN") -> RepaymentStrategy:
     """Factory function to get strategy by name."""
     strategies = {
         "avalanche": AvalancheStrategy(),
         "snowball": SnowballStrategy(),
-        "smart_hybrid": SmartHybridStrategy(tax_bracket),
+        "smart_hybrid": SmartHybridStrategy(tax_bracket, country),
         "proportional": ProportionalStrategy(),
     }
     if name not in strategies:

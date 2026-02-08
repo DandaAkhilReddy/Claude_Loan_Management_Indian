@@ -1,6 +1,14 @@
 import { useEffect } from "react";
 import { onAuthStateChanged } from "firebase/auth";
-import { auth, signInWithPopup, googleProvider, signInWithPhoneNumber, RecaptchaVerifier } from "../lib/firebase";
+import {
+  auth,
+  signInWithPopup,
+  googleProvider,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  sendPasswordResetEmail,
+  updateProfile,
+} from "../lib/firebase";
 import { useAuthStore } from "../store/authStore";
 import api from "../lib/api";
 
@@ -33,12 +41,27 @@ export function useAuth() {
     }
   };
 
-  const loginWithPhone = async (phoneNumber: string, recaptchaContainer: string) => {
-    const recaptchaVerifier = new RecaptchaVerifier(auth, recaptchaContainer, {
-      size: "normal",
-    });
-    const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, recaptchaVerifier);
-    return confirmationResult;
+  const loginWithEmail = async (email: string, password: string) => {
+    setLoading(true);
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const signupWithEmail = async (email: string, password: string, displayName: string) => {
+    setLoading(true);
+    try {
+      const { user: newUser } = await createUserWithEmailAndPassword(auth, email, password);
+      await updateProfile(newUser, { displayName });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const resetPassword = async (email: string) => {
+    await sendPasswordResetEmail(auth, email);
   };
 
   const logout = async () => {
@@ -46,5 +69,5 @@ export function useAuth() {
     setUser(null);
   };
 
-  return { user, loading, loginWithGoogle, loginWithPhone, logout };
+  return { user, loading, loginWithGoogle, loginWithEmail, signupWithEmail, resetPassword, logout };
 }

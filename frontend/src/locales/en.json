@@ -1,7 +1,8 @@
 {
   "app": {
     "title": "Loan Optimizer",
-    "tagline": "Smart Repayment for Indian Loans"
+    "tagline": "Smart Repayment for Indian Loans",
+    "taglineGlobal": "Smart Loan Repayment Optimizer"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -22,7 +23,15 @@
     "confirm": "Confirm",
     "back": "Back",
     "next": "Next",
-    "currency": "₹"
+    "currency": "₹",
+    "saving": "Saving...",
+    "selectAll": "Select All",
+    "deselectAll": "Deselect All",
+    "noActiveLoans": "No active loans",
+    "noActiveLoansDesc": "Add at least one loan to use the Smart Optimizer",
+    "day": "day",
+    "month": "month",
+    "months": "months"
   },
   "dashboard": {
     "totalDebt": "Total Outstanding Debt",
@@ -30,7 +39,49 @@
     "debtFreeBy": "Debt-Free By",
     "addLoan": "Add Loan",
     "scanDoc": "Scan Document",
-    "runOptimizer": "Run Optimizer"
+    "runOptimizer": "Run Optimizer",
+    "noLoansYet": "No loans yet",
+    "noLoansDesc": "Add your first loan to get started with smart repayment optimization",
+    "yourLoans": "Your Loans",
+    "activeLoans": "active loan(s)",
+    "perMonth": "per month",
+    "longestRemaining": "longest remaining loan",
+    "paid": "paid"
+  },
+  "loans": {
+    "addLoan": "Add Loan",
+    "noLoansFound": "No loans found",
+    "noLoansDesc": "Add your first loan to start tracking and optimizing",
+    "bank": "Bank",
+    "type": "Type",
+    "outstanding": "Outstanding",
+    "rate": "Rate",
+    "emi": "EMI",
+    "remaining": "Remaining",
+    "all": "All"
+  },
+  "loanForm": {
+    "title": "Add New Loan",
+    "selectBank": "Select bank",
+    "loanType": "Loan Type",
+    "originalAmount": "Original Amount",
+    "outstandingAmount": "Outstanding Amount",
+    "interestRate": "Interest Rate (%)",
+    "rateType": "Rate Type",
+    "totalTenure": "Total Tenure (months)",
+    "remainingTenure": "Remaining Tenure (months)",
+    "emiAmount": "EMI Amount",
+    "emiDueDate": "EMI Due Date",
+    "dayHint": "Day (1-28)",
+    "taxDeductions": "Tax Deductions",
+    "section80c": "Section 80C (Principal)",
+    "section24b": "Section 24(b) (Home Loan Interest)",
+    "section80e": "Section 80E (Education Loan Interest)",
+    "section80eea": "Section 80EEA (First-time Buyer)",
+    "mortgageDeduction": "Mortgage Interest Deduction",
+    "studentLoanDeduction": "Student Loan Interest Deduction",
+    "saving": "Saving...",
+    "saveLoan": "Save Loan"
   },
   "optimizer": {
     "title": "Smart Repayment Optimizer",
@@ -43,7 +94,44 @@
     "smartHybrid": "Smart Hybrid (Recommended)",
     "interestSaved": "Interest Saved",
     "monthsSaved": "Months Saved",
-    "savePlan": "Save This Plan"
+    "savePlan": "Save This Plan",
+    "wizard": {
+      "stepSelectLoans": "Select Loans",
+      "stepSetBudget": "Set Budget",
+      "stepChooseStrategy": "Choose Strategy",
+      "stepResults": "Results",
+      "analyzing": "Analyzing...",
+      "runOptimizer": "Run Optimizer"
+    },
+    "budget": {
+      "howMuchExtra": "How much extra can you pay?",
+      "gullakMode": "Gullak Mode",
+      "piggyBankMode": "Piggy Bank Mode",
+      "budgetModeDesc": "Think in daily savings — easier to commit!",
+      "dailySaving": "Daily Saving",
+      "monthlyExtra": "Monthly Extra Payment",
+      "lumpSum": "Lump Sum Payments",
+      "lumpSumDesc": "bonuses, windfalls",
+      "add": "+ Add",
+      "amount": "Amount",
+      "month": "Month",
+      "remove": "Remove"
+    },
+    "strategy": {
+      "recommended": "Recommended",
+      "smartHybridDesc": "Post-tax optimized with quick psychological wins",
+      "avalancheDesc": "Targets highest interest rate first — saves the most money",
+      "snowballDesc": "Eliminates smallest balance first — fastest quick wins"
+    },
+    "results": {
+      "youSave": "You save",
+      "debtFree": "Debt-free",
+      "monthsEarlier": "months earlier",
+      "comparison": "Strategy Comparison",
+      "payoffOrder": "Payoff order:",
+      "best": "Best",
+      "planSaved": "Plan Saved!"
+    }
   },
   "emi": {
     "title": "EMI Calculator",
@@ -52,7 +140,8 @@
     "tenure": "Tenure (Years)",
     "monthlyEmi": "Monthly EMI",
     "totalInterest": "Total Interest",
-    "totalPayment": "Total Payment"
+    "totalPayment": "Total Payment",
+    "paymentBreakdown": "Payment Breakdown"
   },
   "scanner": {
     "title": "Scan Loan Document",
@@ -70,6 +159,29 @@
     "statusReviewNeeded": "Review Needed",
     "statusFailed": "Failed"
   },
+  "auth": {
+    "signIn": "Sign In",
+    "signUp": "Sign Up",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "fullName": "Full Name",
+    "forgotPassword": "Forgot password?",
+    "resetPassword": "Reset Password",
+    "sendResetLink": "Send Reset Link",
+    "backToSignIn": "Back to Sign In",
+    "createAccount": "Create Account",
+    "orContinueWith": "or continue with email",
+    "continueWithGoogle": "Continue with Google",
+    "signingIn": "Signing in...",
+    "signingUp": "Creating account...",
+    "sendingReset": "Sending reset link...",
+    "resetSuccess": "Password reset email sent! Check your inbox.",
+    "passwordMinLength": "Password must be at least 8 characters",
+    "passwordMismatch": "Passwords do not match",
+    "emailRequired": "Email is required",
+    "nameRequired": "Full name is required"
+  },
   "loanDetail": {
     "notFound": "Loan not found",
     "backToLoans": "Back to Loans",
@@ -86,5 +198,29 @@
     "principal": "Principal",
     "interest": "Interest",
     "balance": "Balance"
+  },
+  "settings": {
+    "displayName": "Display Name",
+    "language": "Language",
+    "country": "Country",
+    "taxRegime": "Tax Regime",
+    "filingStatus": "Filing Status",
+    "annualIncome": "Annual Income",
+    "forTaxOptimization": "For tax optimization",
+    "dataManagement": "Data Management",
+    "exportData": "Export My Data",
+    "dpdpAct": "DPDP Act",
+    "ccpa": "CCPA",
+    "deleteAccount": "Delete Account",
+    "deleteWarning": "This will permanently delete all your data. Are you sure?",
+    "appVersion": "App version",
+    "oldRegime": "Old Regime",
+    "newRegime": "New Regime",
+    "single": "Single",
+    "marriedJointly": "Married Filing Jointly",
+    "marriedSeparately": "Married Filing Separately",
+    "headOfHousehold": "Head of Household",
+    "india": "India",
+    "unitedStates": "United States"
   }
 }

@@ -3,11 +3,13 @@ import { Menu, LogOut } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
 import { useUIStore } from "../../store/uiStore";
 import { useLanguageStore } from "../../store/languageStore";
+import { useCountryStore } from "../../store/countryStore";
 
 const languages = [
   { code: "en", label: "EN" },
   { code: "hi", label: "हिन्दी" },
   { code: "te", label: "తెలుగు" },
+  { code: "es", label: "ES" },
 ];
 
 export function Header() {
@@ -15,6 +17,7 @@ export function Header() {
   const { user, logout } = useAuth();
   const { toggleSidebar } = useUIStore();
   const { language, setLanguage } = useLanguageStore();
+  const { country, setCountry } = useCountryStore();
 
   return (
     <header className="h-16 sticky top-0 z-50 bg-white border-b border-gray-200 px-4 flex items-center justify-between">
@@ -26,6 +29,23 @@ export function Header() {
       </div>
 
       <div className="flex items-center gap-3">
+        {/* Country switcher */}
+        <div className="flex bg-gray-100 rounded-lg p-0.5">
+          {(["IN", "US"] as const).map((c) => (
+            <button
+              key={c}
+              onClick={() => setCountry(c)}
+              className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
+                country === c
+                  ? "bg-white text-blue-700 shadow-sm"
+                  : "text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              {c === "IN" ? "IN" : "US"}
+            </button>
+          ))}
+        </div>
+
         {/* Language switcher */}
         <div className="flex bg-gray-100 rounded-lg p-0.5">
           {languages.map((lang) => (

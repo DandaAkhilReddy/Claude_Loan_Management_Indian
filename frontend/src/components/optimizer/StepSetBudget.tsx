@@ -1,5 +1,7 @@
 import { useState } from "react";
-import { formatINR } from "../../lib/format";
+import { useTranslation } from "react-i18next";
+import { formatCurrency } from "../../lib/format";
+import { useCountryConfig } from "../../hooks/useCountryConfig";
 
 interface Props {
   monthlyExtra: number;
@@ -9,73 +11,78 @@ interface Props {
 }
 
 export function StepSetBudget({ monthlyExtra, onMonthlyExtraChange, lumpSums, onLumpSumsChange }: Props) {
-  const [gullakMode, setGullakMode] = useState(false);
-  const [dailySaving, setDailySaving] = useState(100);
+  const { t } = useTranslation();
+  const config = useCountryConfig();
+  const fmt = (n: number) => formatCurrency(n, config.code);
 
-  const handleGullakToggle = () => {
-    if (!gullakMode) {
+  const { dailySaving: dRange, monthlyExtra: mRange, lumpSumDefault } = config.sliderRanges;
+  const [budgetMode, setBudgetMode] = useState(false);
+  const [dailySaving, setDailySaving] = useState(dRange.min * 10); // sensible default
+
+  const handleBudgetModeToggle = () => {
+    if (!budgetMode) {
       onMonthlyExtraChange(dailySaving * 30);
     }
-    setGullakMode(!gullakMode);
+    setBudgetMode(!budgetMode);
   };
 
   const handleDailyChange = (value: number) => {
     setDailySaving(value);
-    if (gullakMode) onMonthlyExtraChange(value * 30);
+    if (budgetMode) onMonthlyExtraChange(value * 30);
   };
 
   const addLumpSum = () => {
-    onLumpSumsChange([...lumpSums, { month: 6, amount: 50000 }]);
+    onLumpSumsChange([...lumpSums, { month: 6, amount: lumpSumDefault }]);
   };
 
   return (
     <div className="space-y-6">
-      <h2 className="font-semibold text-gray-900">How much extra can you pay?</h2>
+      <h2 className="font-semibold text-gray-900">{t("optimizer.budget.howMuchExtra")}</h2>
 
-      {/* Gullak Mode Toggle */}
+      {/* Budget Mode Toggle (Gullak / Piggy Bank) */}
       <div className="flex items-center justify-between p-4 bg-amber-50 rounded-xl border border-amber-200">
         <div>
-          <p className="font-medium text-amber-800">Gullak Mode</p>
-          <p className="text-sm text-amber-600">Think in daily savings — easier to commit!</p>
+          <p className="font-medium text-amber-800">{t(config.budgetModeKey)}</p>
+          <p className="text-sm text-amber-600">{t("optimizer.budget.budgetModeDesc")}</p>
         </div>
         <button
-          onClick={handleGullakToggle}
-          className={`relative w-12 h-6 rounded-full transition-colors ${gullakMode ? "bg-amber-500" : "bg-gray-300"}`}
+          onClick={handleBudgetModeToggle}
+          className={`relative w-12 h-6 rounded-full transition-colors ${budgetMode ? "bg-amber-500" : "bg-gray-300"}`}
         >
-          <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${gullakMode ? "translate-x-6" : "translate-x-0.5"}`} />
+          <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${budgetMode ? "translate-x-6" : "translate-x-0.5"}`} />
         </button>
       </div>
 
-      {gullakMode ? (
+      {budgetMode ? (
         <div>
           <div className="flex justify-between mb-2">
-            <label className="text-sm font-medium text-gray-700">Daily Saving</label>
-            <span className="text-sm font-semibold text-amber-600">{formatINR(dailySaving)}/day = {formatINR(dailySaving * 30)}/month</span>
+            <label className="text-sm font-medium text-gray-700">{t("optimizer.budget.dailySaving")}</label>
+            <span className="text-sm font-semibold text-amber-600">{fmt(dailySaving)}/{t("common.day")} = {fmt(dailySaving * 30)}/{t("common.month")}</span>
           </div>
           <input
-            type="range" min={10} max={1000} step={10}
+            type="range" min={dRange.min} max={dRange.max} step={dRange.step}
             value={dailySaving}
             onChange={(e) => handleDailyChange(Number(e.target.value))}
             className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-amber-500"
           />
           <div className="flex justify-between text-xs text-gray-400 mt-1">
-            <span>₹10/day</span><span>₹1,000/day</span>
+            <span>{fmt(dRange.min)}/{t("common.day")}</span><span>{fmt(dRange.max)}/{t("common.day")}</span>
           </div>
         </div>
       ) : (
         <div>
           <div className="flex justify-between mb-2">
-            <label className="text-sm font-medium text-gray-700">Monthly Extra Payment</label>
-            <span className="text-sm font-semibold text-blue-600">{formatINR(monthlyExtra)}</span>
+            <label className="text-sm font-medium text-gray-700">{t("optimizer.budget.monthlyExtra")}</label>
+            <span className="text-sm font-semibold text-blue-600">{fmt(monthlyExtra)}</span>
           </div>
           <input
-            type="range" min={0} max={50000} step={500}
+            type="range" min={mRange.min} max={mRange.max} step={mRange.step}
             value={monthlyExtra}
             onChange={(e) => onMonthlyExtraChange(Number(e.target.value))}
             className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
           />
           <div className="flex justify-between text-xs text-gray-400 mt-1">
-            <span>₹0</span><span>₹50,000</span>
+            <span>{fmt(mRange.min)}</span><span>{fmt(mRange.max)}</span>
           </div>
         </div>
       )}
@@ -83,14 +90,14 @@ export function StepSetBudget({ monthlyExtra, onMonthlyExtraChange, lumpSums, on
       {/* Lump Sums */}
       <div>
         <div className="flex items-center justify-between mb-2">
-          <label className="text-sm font-medium text-gray-700">Lump Sum Payments (bonuses, windfalls)</label>
-          <button onClick={addLumpSum} className="text-sm text-blue-600 hover:text-blue-700">+ Add</button>
+          <label className="text-sm font-medium text-gray-700">{t("optimizer.budget.lumpSum")}</label>
+          <button onClick={addLumpSum} className="text-sm text-blue-600 hover:text-blue-700">+ {t("optimizer.budget.add")}</button>
         </div>
         {lumpSums.map((ls, i) => (
           <div key={i} className="flex gap-3 mb-2">
             <div className="flex-1">
               <input
-                type="number" placeholder="Amount (₹)"
+                type="number" placeholder={t("optimizer.budget.amount")}
                 value={ls.amount}
                 onChange={(e) => {
                   const updated = [...lumpSums];
@@ -102,7 +109,7 @@ export function StepSetBudget({ monthlyExtra, onMonthlyExtraChange, lumpSums, on
             </div>
             <div className="w-24">
               <input
-                type="number" placeholder="Month"
+                type="number" placeholder={t("optimizer.budget.month")}
                 value={ls.month}
                 onChange={(e) => {
                   const updated = [...lumpSums];
@@ -116,7 +123,7 @@ export function StepSetBudget({ monthlyExtra, onMonthlyExtraChange, lumpSums, on
               onClick={() => onLumpSumsChange(lumpSums.filter((_, j) => j !== i))}
               className="text-red-500 hover:text-red-600 text-sm"
             >
-              Remove
+              {t("optimizer.budget.remove")}
             </button>
           </div>
         ))}

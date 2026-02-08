@@ -29,7 +29,9 @@ class User(Base):
     phone: Mapped[str | None] = mapped_column(String(15), nullable=True)
     display_name: Mapped[str | None] = mapped_column(String(100), nullable=True)
     preferred_language: Mapped[str] = mapped_column(String(5), default="en")
+    country: Mapped[str] = mapped_column(String(5), default="IN")  # IN or US
     tax_regime: Mapped[str] = mapped_column(String(10), default="old")
+    filing_status: Mapped[str | None] = mapped_column(String(30), nullable=True)  # US: single/married_jointly/married_separately/head_of_household
     annual_income: Mapped[float | None] = mapped_column(Numeric(15, 2), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
@@ -47,7 +49,7 @@ class Loan(Base):
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     bank_name: Mapped[str] = mapped_column(String(50), nullable=False)
-    loan_type: Mapped[str] = mapped_column(String(20), nullable=False)  # home/personal/car/education/gold/credit_card
+    loan_type: Mapped[str] = mapped_column(String(20), nullable=False)  # home/personal/car/education/gold/credit_card/business
     principal_amount: Mapped[float] = mapped_column(Numeric(15, 2), nullable=False)
     outstanding_principal: Mapped[float] = mapped_column(Numeric(15, 2), nullable=False)
     interest_rate: Mapped[float] = mapped_column(Numeric(5, 2), nullable=False)
@@ -62,6 +64,9 @@ class Loan(Base):
     eligible_24b: Mapped[bool] = mapped_column(Boolean, default=False)
     eligible_80e: Mapped[bool] = mapped_column(Boolean, default=False)
     eligible_80eea: Mapped[bool] = mapped_column(Boolean, default=False)
+    # US tax fields
+    eligible_mortgage_deduction: Mapped[bool] = mapped_column(Boolean, default=False)
+    eligible_student_loan_deduction: Mapped[bool] = mapped_column(Boolean, default=False)
     disbursement_date: Mapped[datetime | None] = mapped_column(Date, nullable=True)
     status: Mapped[str] = mapped_column(String(10), default="active")  # active/closed
     source: Mapped[str] = mapped_column(String(20), default="manual")  # manual/scan/account_aggregator

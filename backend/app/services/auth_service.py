@@ -1,6 +1,9 @@
 """Firebase Admin SDK token verification."""
 
+import base64
+import json
 import logging
+import os
 
 import firebase_admin
 from firebase_admin import auth, credentials
@@ -17,13 +20,31 @@ def _init_firebase():
     if _app is not None:
         return
     try:
-        if settings.firebase_project_id:
+        # Strategy 1: Base64-encoded service account JSON (preferred for Azure)
+        if settings.firebase_service_account_base64:
+            sa_json = json.loads(
+                base64.b64decode(settings.firebase_service_account_base64)
+            )
+            cred = credentials.Certificate(sa_json)
+            _app = firebase_admin.initialize_app(cred)
+            logger.info("Firebase Admin SDK initialized with service account (base64)")
+
+        # Strategy 2: GOOGLE_APPLICATION_CREDENTIALS env var (file path)
+        elif os.environ.get("GOOGLE_APPLICATION_CREDENTIALS"):
+            _app = firebase_admin.initialize_app()
+            logger.info("Firebase Admin SDK initialized via GOOGLE_APPLICATION_CREDENTIALS")
+
+        # Strategy 3: Project ID only (fallback)
+        elif settings.firebase_project_id:
             _app = firebase_admin.initialize_app(options={
                 "projectId": settings.firebase_project_id,
             })
+            logger.info("Firebase Admin SDK initialized with project ID only")
+
         else:
             _app = firebase_admin.initialize_app()
-        logger.info("Firebase Admin SDK initialized")
+            logger.info("Firebase Admin SDK initialized with default credentials")
+
     except Exception as e:
         logger.warning(f"Firebase init failed (may already be initialized): {e}")
 

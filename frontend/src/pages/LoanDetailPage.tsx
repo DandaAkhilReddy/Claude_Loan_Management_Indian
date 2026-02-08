@@ -3,7 +3,8 @@ import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft } from "lucide-react";
 import api from "../lib/api";
-import { formatINR, formatMonths } from "../lib/format";
+import { formatCurrency, formatMonths } from "../lib/format";
+import { useCountryConfig } from "../hooks/useCountryConfig";
 import { LoadingSpinner } from "../components/shared/LoadingSpinner";
 import type { Loan, AmortizationEntry } from "../types";
 
@@ -11,6 +12,8 @@ export function LoanDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const config = useCountryConfig();
+  const fmt = (n: number) => formatCurrency(n, config.code);
 
   const { data: loan, isLoading } = useQuery<Loan>({
     queryKey: ["loan", id],
@@ -47,15 +50,15 @@ export function LoanDetailPage() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div>
             <p className="text-xs text-gray-400">{t("loanDetail.originalAmount")}</p>
-            <p className="font-semibold">{formatINR(loan.principal_amount)}</p>
+            <p className="font-semibold">{fmt(loan.principal_amount)}</p>
           </div>
           <div>
             <p className="text-xs text-gray-400">{t("loanDetail.outstanding")}</p>
-            <p className="font-semibold">{formatINR(loan.outstanding_principal)}</p>
+            <p className="font-semibold">{fmt(loan.outstanding_principal)}</p>
           </div>
           <div>
             <p className="text-xs text-gray-400">{t("loanDetail.monthlyEmi")}</p>
-            <p className="font-semibold">{formatINR(loan.emi_amount)}</p>
+            <p className="font-semibold">{fmt(loan.emi_amount)}</p>
           </div>
           <div>
             <p className="text-xs text-gray-400">{t("loanDetail.remaining")}</p>
@@ -66,7 +69,7 @@ export function LoanDetailPage() {
         <div className="mt-4">
           <div className="flex justify-between text-xs text-gray-400 mb-1">
             <span>{t("loanDetail.paidPercent", { percent: paidPercent })}</span>
-            <span>{t("loanDetail.amountRemaining", { amount: formatINR(loan.outstanding_principal) })}</span>
+            <span>{t("loanDetail.amountRemaining", { amount: fmt(loan.outstanding_principal) })}</span>
           </div>
           <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
             <div className="h-full bg-blue-500 rounded-full" style={{ width: `${Math.max(2, paidPercent)}%` }} />
@@ -79,7 +82,7 @@ export function LoanDetailPage() {
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="p-4 border-b border-gray-100">
             <h2 className="font-semibold text-gray-900">{t("loanDetail.amortizationSchedule")}</h2>
-            <p className="text-sm text-gray-500">{t("loanDetail.totalInterest")}: {formatINR(amortization.total_interest)}</p>
+            <p className="text-sm text-gray-500">{t("loanDetail.totalInterest")}: {fmt(amortization.total_interest)}</p>
           </div>
           <div className="overflow-x-auto max-h-96">
             <table className="w-full text-sm">
@@ -96,10 +99,10 @@ export function LoanDetailPage() {
                 {amortization.schedule.map((entry) => (
                   <tr key={entry.month}>
                     <td className="px-4 py-2">{entry.month}</td>
-                    <td className="px-4 py-2 text-right">{formatINR(entry.emi)}</td>
-                    <td className="px-4 py-2 text-right text-green-600">{formatINR(entry.principal)}</td>
-                    <td className="px-4 py-2 text-right text-red-500">{formatINR(entry.interest)}</td>
-                    <td className="px-4 py-2 text-right font-medium">{formatINR(entry.balance)}</td>
+                    <td className="px-4 py-2 text-right">{fmt(entry.emi)}</td>
+                    <td className="px-4 py-2 text-right text-green-600">{fmt(entry.principal)}</td>
+                    <td className="px-4 py-2 text-right text-red-500">{fmt(entry.interest)}</td>
+                    <td className="px-4 py-2 text-right font-medium">{fmt(entry.balance)}</td>
                   </tr>
                 ))}
               </tbody>

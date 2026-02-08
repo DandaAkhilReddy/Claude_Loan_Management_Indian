@@ -30,6 +30,7 @@ class Settings(BaseSettings):
 
     # Firebase
     firebase_project_id: str = ""
+    firebase_service_account_base64: str = ""  # base64-encoded service account JSON for Azure
 
     # App
     environment: str = "development"

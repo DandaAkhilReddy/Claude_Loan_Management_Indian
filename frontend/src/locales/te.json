@@ -1,7 +1,8 @@
 {
   "app": {
     "title": "లోన్ ఆప్టిమైజర్",
-    "tagline": "భారతీయ లోన్ల కోసం స్మార్ట్ రీపేమెంట్"
+    "tagline": "భారతీయ లోన్ల కోసం స్మార్ట్ రీపేమెంట్",
+    "taglineGlobal": "స్మార్ట్ లోన్ రీపేమెంట్ ఆప్టిమైజర్"
   },
   "nav": {
     "dashboard": "డాష్‌బోర్డ్",
@@ -22,7 +23,15 @@
     "confirm": "నిర్ధారించు",
     "back": "వెనుకకు",
     "next": "తదుపరి",
-    "currency": "₹"
+    "currency": "₹",
+    "saving": "సేవ్ చేస్తోంది...",
+    "selectAll": "అన్నీ ఎంచుకోండి",
+    "deselectAll": "అన్నీ తీసివేయండి",
+    "noActiveLoans": "యాక్టివ్ లోన్లు లేవు",
+    "noActiveLoansDesc": "స్మార్ట్ ఆప్టిమైజర్ ఉపయోగించడానికి కనీసం ఒక లోన్ జోడించండి",
+    "day": "రోజు",
+    "month": "నెల",
+    "months": "నెలలు"
   },
   "dashboard": {
     "totalDebt": "మొత్తం బాకీ అప్పు",
@@ -30,7 +39,49 @@
     "debtFreeBy": "అప్పు రహితం తేదీ",
     "addLoan": "లోన్ జోడించు",
     "scanDoc": "డాక్యుమెంట్ స్కాన్ చేయి",
-    "runOptimizer": "ఆప్టిమైజర్ రన్ చేయి"
+    "runOptimizer": "ఆప్టిమైజర్ రన్ చేయి",
+    "noLoansYet": "ఇంకా లోన్లు లేవు",
+    "noLoansDesc": "స్మార్ట్ రీపేమెంట్ ప్రారంభించడానికి మీ మొదటి లోన్‌ను జోడించండి",
+    "yourLoans": "మీ లోన్లు",
+    "activeLoans": "యాక్టివ్ లోన్(లు)",
+    "perMonth": "నెలకు",
+    "longestRemaining": "ఎక్కువ కాలం మిగిలిన లోన్",
+    "paid": "చెల్లించారు"
+  },
+  "loans": {
+    "addLoan": "లోన్ జోడించండి",
+    "noLoansFound": "లోన్లు కనుగొనబడలేదు",
+    "noLoansDesc": "ట్రాకింగ్ మరియు ఆప్టిమైజ్ చేయడానికి మీ మొదటి లోన్‌ను జోడించండి",
+    "bank": "బ్యాంక్",
+    "type": "రకం",
+    "outstanding": "బకాయి",
+    "rate": "రేటు",
+    "emi": "EMI",
+    "remaining": "మిగిలిన",
+    "all": "అన్నీ"
+  },
+  "loanForm": {
+    "title": "కొత్త లోన్ జోడించండి",
+    "selectBank": "బ్యాంక్ ఎంచుకోండి",
+    "loanType": "లోన్ రకం",
+    "originalAmount": "అసలు మొత్తం",
+    "outstandingAmount": "బకాయి మొత్తం",
+    "interestRate": "వడ్డీ రేటు (%)",
+    "rateType": "రేటు రకం",
+    "totalTenure": "మొత్తం కాలం (నెలలు)",
+    "remainingTenure": "మిగిలిన కాలం (నెలలు)",
+    "emiAmount": "EMI మొత్తం",
+    "emiDueDate": "EMI గడువు తేదీ",
+    "dayHint": "రోజు (1-28)",
+    "taxDeductions": "పన్ను తగ్గింపులు",
+    "section80c": "సెక్షన్ 80C (ప్రిన్సిపల్)",
+    "section24b": "సెక్షన్ 24(b) (హోమ్ లోన్ వడ్డీ)",
+    "section80e": "సెక్షన్ 80E (విద్యా లోన్ వడ్డీ)",
+    "section80eea": "సెక్షన్ 80EEA (మొదటిసారి కొనుగోలుదారు)",
+    "mortgageDeduction": "గృహ లోన్ వడ్డీ తగ్గింపు",
+    "studentLoanDeduction": "విద్యా లోన్ వడ్డీ తగ్గింపు",
+    "saving": "సేవ్ చేస్తోంది...",
+    "saveLoan": "లోన్ సేవ్ చేయండి"
   },
   "optimizer": {
     "title": "స్మార్ట్ రీపేమెంట్ ఆప్టిమైజర్",
@@ -43,7 +94,44 @@
     "smartHybrid": "స్మార్ట్ హైబ్రిడ్ (సిఫారసు)",
     "interestSaved": "ఆదా అయిన వడ్డీ",
     "monthsSaved": "ఆదా అయిన నెలలు",
-    "savePlan": "ఈ ప్లాన్ సేవ్ చేయి"
+    "savePlan": "ఈ ప్లాన్ సేవ్ చేయి",
+    "wizard": {
+      "stepSelectLoans": "లోన్లు ఎంచుకోండి",
+      "stepSetBudget": "బడ్జెట్ సెట్ చేయండి",
+      "stepChooseStrategy": "వ్యూహం ఎంచుకోండి",
+      "stepResults": "ఫలితాలు",
+      "analyzing": "విశ్లేషిస్తోంది...",
+      "runOptimizer": "ఆప్టిమైజర్ రన్ చేయండి"
+    },
+    "budget": {
+      "howMuchExtra": "మీరు ఎంత అదనపు చెల్లించగలరు?",
+      "gullakMode": "గుల్లక్ మోడ్",
+      "piggyBankMode": "పిగ్గీ బ్యాంక్ మోడ్",
+      "budgetModeDesc": "రోజువారీ పొదుపులో ఆలోచించండి — కట్టుబడటం సులభం!",
+      "dailySaving": "రోజువారీ పొదుపు",
+      "monthlyExtra": "నెలవారీ అదనపు చెల్లింపు",
+      "lumpSum": "ఒకేసారి చెల్లింపులు",
+      "lumpSumDesc": "బోనస్‌లు, అనుకోని ఆదాయం",
+      "add": "+ జోడించు",
+      "amount": "మొత్తం",
+      "month": "నెల",
+      "remove": "తొలగించు"
+    },
+    "strategy": {
+      "recommended": "సిఫార్సు చేయబడింది",
+      "smartHybridDesc": "పన్ను తర్వాత ఆప్టిమైజ్ చేయబడింది, త్వరిత విజయాలతో",
+      "avalancheDesc": "అత్యధిక వడ్డీ రేటు లోన్‌ను ముందుగా లక్ష్యంగా చేస్తుంది — అత్యధిక డబ్బు ఆదా",
+      "snowballDesc": "చిన్న బకాయిని ముందుగా తొలగిస్తుంది — వేగవంతమైన విజయాలు"
+    },
+    "results": {
+      "youSave": "మీరు ఆదా చేస్తారు",
+      "debtFree": "అప్పు-రహితం",
+      "monthsEarlier": "నెలల ముందు",
+      "comparison": "వ్యూహ పోలిక",
+      "payoffOrder": "చెల్లింపు క్రమం:",
+      "best": "ఉత్తమం",
+      "planSaved": "ప్లాన్ సేవ్ అయింది!"
+    }
   },
   "emi": {
     "title": "EMI కాలిక్యులేటర్",
@@ -52,7 +140,8 @@
     "tenure": "కాలపరిమితి (సంవత్సరాలు)",
     "monthlyEmi": "నెలవారీ EMI",
     "totalInterest": "మొత్తం వడ్డీ",
-    "totalPayment": "మొత్తం చెల్లింపు"
+    "totalPayment": "మొత్తం చెల్లింపు",
+    "paymentBreakdown": "చెల్లింపు వివరాలు"
   },
   "scanner": {
     "title": "లోన్ డాక్యుమెంట్ స్కాన్ చేయి",
@@ -70,6 +159,29 @@
     "statusReviewNeeded": "సమీక్ష అవసరం",
     "statusFailed": "విఫలమైంది"
   },
+  "auth": {
+    "signIn": "సైన్ ఇన్",
+    "signUp": "సైన్ అప్",
+    "email": "ఇమెయిల్",
+    "password": "పాస్‌వర్డ్",
+    "confirmPassword": "పాస్‌వర్డ్ నిర్ధారించండి",
+    "fullName": "పూర్తి పేరు",
+    "forgotPassword": "పాస్‌వర్డ్ మర్చిపోయారా?",
+    "resetPassword": "పాస్‌వర్డ్ రీసెట్ చేయండి",
+    "sendResetLink": "రీసెట్ లింక్ పంపండి",
+    "backToSignIn": "సైన్ ఇన్‌కు తిరిగి వెళ్ళండి",
+    "createAccount": "ఖాతా సృష్టించండి",
+    "orContinueWith": "లేదా ఇమెయిల్‌తో కొనసాగించండి",
+    "continueWithGoogle": "Google తో కొనసాగించండి",
+    "signingIn": "సైన్ ఇన్ అవుతోంది...",
+    "signingUp": "ఖాతా సృష్టిస్తోంది...",
+    "sendingReset": "రీసెట్ లింక్ పంపుతోంది...",
+    "resetSuccess": "పాస్‌వర్డ్ రీసెట్ ఇమెయిల్ పంపబడింది! మీ ఇన్‌బాక్స్ తనిఖీ చేయండి.",
+    "passwordMinLength": "పాస్‌వర్డ్ కనీసం 8 అక్షరాలు ఉండాలి",
+    "passwordMismatch": "పాస్‌వర్డ్‌లు సరిపోలడం లేదు",
+    "emailRequired": "ఇమెయిల్ అవసరం",
+    "nameRequired": "పూర్తి పేరు అవసరం"
+  },
   "loanDetail": {
     "notFound": "లోన్ కనుగొనబడలేదు",
     "backToLoans": "లోన్ల వద్దకు వెనుకకు",
@@ -86,5 +198,29 @@
     "principal": "అసలు",
     "interest": "వడ్డీ",
     "balance": "మిగిలిన మొత్తం"
+  },
+  "settings": {
+    "displayName": "ప్రదర్శన పేరు",
+    "language": "భాష",
+    "country": "దేశం",
+    "taxRegime": "పన్ను విధానం",
+    "filingStatus": "ఫైలింగ్ స్థితి",
+    "annualIncome": "వార్షిక ఆదాయం",
+    "forTaxOptimization": "పన్ను ఆప్టిమైజేషన్ కోసం",
+    "dataManagement": "డేటా నిర్వహణ",
+    "exportData": "నా డేటాను ఎక్స్‌పోర్ట్ చేయండి",
+    "dpdpAct": "DPDP చట్టం",
+    "ccpa": "CCPA",
+    "deleteAccount": "ఖాతా తొలగించు",
+    "deleteWarning": "ఇది మీ మొత్తం డేటాను శాశ్వతంగా తొలగిస్తుంది. మీరు నిశ్చయంగా ఉన్నారా?",
+    "appVersion": "యాప్ వెర్షన్",
+    "oldRegime": "పాత విధానం",
+    "newRegime": "కొత్త విధానం",
+    "single": "అవివాహిత",
+    "marriedJointly": "వివాహిత సంయుక్త ఫైలింగ్",
+    "marriedSeparately": "వివాహిత వేర్వేరు ఫైలింగ్",
+    "headOfHousehold": "గృహ యజమాని",
+    "india": "భారతదేశం",
+    "unitedStates": "యునైటెడ్ స్టేట్స్"
   }
 }

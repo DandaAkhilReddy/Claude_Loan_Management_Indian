@@ -1,7 +1,11 @@
 /**
- * Indian number formatting utilities.
- * ₹1,00,000 (not ₹100,000)
+ * Currency and number formatting utilities.
+ * Supports INR (Indian) and USD (US) formatting.
  */
+
+import type { CountryCode } from "../store/countryStore";
+
+// ---------- INR (Indian Rupee) ----------
 
 export function formatINR(amount: number): string {
   if (amount === 0) return "₹0";
@@ -24,7 +28,6 @@ export function formatINR(amount: number): string {
     result = `${formattedRest},${lastThree}`;
   }
 
-  // Remove trailing .00
   const formatted = decimalPart === "00" ? result : `${result}.${decimalPart}`;
   return `${isNegative ? "-" : ""}₹${formatted}`;
 }
@@ -36,6 +39,44 @@ export function formatINRCompact(amount: number): string {
   if (absAmount >= 1000) return `₹${(amount / 1000).toFixed(1)}K`;
   return formatINR(amount);
 }
+
+// ---------- USD (US Dollar) ----------
+
+export function formatUSD(amount: number): string {
+  if (amount === 0) return "$0";
+
+  const isNegative = amount < 0;
+  const absAmount = Math.abs(amount);
+
+  const parts = absAmount.toFixed(2).split(".");
+  const integerPart = parts[0];
+  const decimalPart = parts[1];
+
+  // Standard US grouping: groups of 3
+  const formattedInt = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  const formatted = decimalPart === "00" ? formattedInt : `${formattedInt}.${decimalPart}`;
+  return `${isNegative ? "-" : ""}$${formatted}`;
+}
+
+export function formatUSDCompact(amount: number): string {
+  const absAmount = Math.abs(amount);
+  if (absAmount >= 1000000000) return `$${(amount / 1000000000).toFixed(1)}B`;
+  if (absAmount >= 1000000) return `$${(amount / 1000000).toFixed(1)}M`;
+  if (absAmount >= 1000) return `$${(amount / 1000).toFixed(1)}K`;
+  return formatUSD(amount);
+}
+
+// ---------- Country-aware public API ----------
+
+export function formatCurrency(amount: number, country: CountryCode = "IN"): string {
+  return country === "US" ? formatUSD(amount) : formatINR(amount);
+}
+
+export function formatCurrencyCompact(amount: number, country: CountryCode = "IN"): string {
+  return country === "US" ? formatUSDCompact(amount) : formatINRCompact(amount);
+}
+
+// ---------- Shared utilities ----------
 
 export function formatPercent(value: number): string {
   return `${value.toFixed(2)}%`;
@@ -49,8 +90,9 @@ export function formatMonths(months: number): string {
   return `${years}y ${remaining}m`;
 }
 
-export function formatDate(date: string | Date): string {
-  return new Date(date).toLocaleDateString("en-IN", {
+export function formatDate(date: string | Date, country: CountryCode = "IN"): string {
+  const locale = country === "US" ? "en-US" : "en-IN";
+  return new Date(date).toLocaleDateString(locale, {
     day: "numeric",
     month: "short",
     year: "numeric",

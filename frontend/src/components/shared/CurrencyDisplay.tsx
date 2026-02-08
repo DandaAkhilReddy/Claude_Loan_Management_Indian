@@ -1,4 +1,5 @@
-import { formatINR, formatINRCompact } from "../../lib/format";
+import { formatCurrency, formatCurrencyCompact } from "../../lib/format";
+import { useCountryConfig } from "../../hooks/useCountryConfig";
 
 interface Props {
   amount: number;
@@ -7,6 +8,9 @@ interface Props {
 }
 
 export function CurrencyDisplay({ amount, compact = false, className = "" }: Props) {
-  const formatted = compact ? formatINRCompact(amount) : formatINR(amount);
+  const config = useCountryConfig();
+  const formatted = compact
+    ? formatCurrencyCompact(amount, config.code)
+    : formatCurrency(amount, config.code);
   return <span className={className}>{formatted}</span>;
 }

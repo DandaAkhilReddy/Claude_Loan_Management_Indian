@@ -236,12 +236,14 @@ class MultiLoanOptimizer:
         self,
         strategies: list[str] | None = None,
         tax_bracket: Decimal = Decimal("0.30"),
+        country: str = "IN",
     ) -> OptimizationResult:
         """Run all strategies and compare results.
 
         Args:
             strategies: List of strategy names. Default: all 4.
             tax_bracket: User's income tax bracket for SmartHybrid.
+            country: 'IN' or 'US' for country-aware tax calculations.
 
         Returns:
             OptimizationResult with all strategies compared.
@@ -255,7 +257,7 @@ class MultiLoanOptimizer:
         # Run each strategy
         results: list[StrategyResult] = []
         for strategy_name in strategies:
-            strategy = get_strategy(strategy_name, tax_bracket)
+            strategy = get_strategy(strategy_name, tax_bracket, country)
             result = self._simulate_strategy(strategy)
             result.interest_saved_vs_baseline = (
                 baseline_interest - result.total_interest_paid

@@ -1,7 +1,7 @@
 """Azure OpenAI GPT-4o-mini integration for AI insights.
 
 Features:
-- Loan explanation in plain language (Hinglish-friendly)
+- Loan explanation in plain language (country-aware)
 - Strategy explanation with relay race metaphor
 - RAG-powered Q&A (pgvector search + GPT)
 """
@@ -13,13 +13,21 @@ from app.config import settings
 
 logger = logging.getLogger(__name__)
 
-SYSTEM_PROMPT = """You are a friendly Indian financial advisor who explains loan concepts simply.
+SYSTEM_PROMPT_IN = """You are a friendly Indian financial advisor who explains loan concepts simply.
 Use relatable Indian examples. Mix Hindi/English (Hinglish) where natural.
 Always reference amounts in ₹ with Indian numbering (₹1,00,000 not ₹100,000).
 Keep explanations under 200 words unless asked for detail.
 Never give specific investment advice — only explain loan mechanics and optimization strategies."""
 
-LOAN_EXPLANATION_PROMPT = """Explain this loan in simple terms that any Indian borrower would understand:
+SYSTEM_PROMPT_US = """You are a friendly American financial advisor who explains loan concepts simply.
+Use relatable American examples with clear, plain English.
+Always reference amounts in $ with US numbering ($100,000).
+Mention relevant US concepts like mortgage interest deduction, student loan interest deduction,
+standard vs itemized deductions, and filing status where appropriate.
+Keep explanations under 200 words unless asked for detail.
+Never give specific investment advice — only explain loan mechanics and optimization strategies."""
+
+LOAN_EXPLANATION_PROMPT_IN = """Explain this loan in simple terms that any Indian borrower would understand:
 
 Bank: {bank_name}
 Type: {loan_type}
@@ -34,7 +42,22 @@ Include:
 2. What portion of their EMI goes to interest vs principal right now
 3. One actionable tip to save money"""
 
-STRATEGY_EXPLANATION_PROMPT = """Explain this loan repayment strategy in simple, relatable terms:
+LOAN_EXPLANATION_PROMPT_US = """Explain this loan in simple terms that any American borrower would understand:
+
+Bank: {bank_name}
+Type: {loan_type}
+Principal: ${principal:,.0f}
+Outstanding: ${outstanding:,.0f}
+Interest Rate: {rate}% ({rate_type})
+Monthly Payment: ${emi:,.0f}
+Remaining: {remaining_months} months
+
+Include:
+1. How much total interest they'll pay
+2. What portion of their monthly payment goes to interest vs principal right now
+3. One actionable tip to save money (mention tax deductions if applicable)"""
+
+STRATEGY_EXPLANATION_PROMPT_IN = """Explain this loan repayment strategy in simple, relatable terms:
 
 Strategy: {strategy_name}
 Number of loans: {num_loans}
@@ -48,7 +71,21 @@ like a relay race where each runner passes the baton!"
 
 Make it motivating and actionable."""
 
-RAG_QA_PROMPT = """Answer the user's question about Indian loans using ONLY the context below.
+STRATEGY_EXPLANATION_PROMPT_US = """Explain this loan repayment strategy in simple, relatable terms:
+
+Strategy: {strategy_name}
+Number of loans: {num_loans}
+Extra monthly payment: ${extra:,.0f}
+Interest saved: ${interest_saved:,.0f}
+Months saved: {months_saved}
+Payoff order: {payoff_order}
+
+Use the "relay race" metaphor: when one loan is paid off, roll that payment into the next loan —
+like a relay race where each runner passes the baton!
+
+Make it motivating and actionable."""
+
+RAG_QA_PROMPT_IN = """Answer the user's question about Indian loans using ONLY the context below.
 If the context doesn't contain the answer, say "I don't have specific information about that,
 but here's what I know about Indian loans in general..."
 
@@ -58,6 +95,24 @@ Context from knowledge base:
 User question: {question}
 
 Answer in simple language with Indian context."""
+
+RAG_QA_PROMPT_US = """Answer the user's question about American loans using ONLY the context below.
+If the context doesn't contain the answer, say "I don't have specific information about that,
+but here's what I know about US loans in general..."
+
+Context from knowledge base:
+{context}
+
+User question: {question}
+
+Answer in simple language with American financial context."""
+
+
+def _get_prompts(country: str) -> tuple[str, str, str, str]:
+    """Return (system, loan_explanation, strategy_explanation, rag_qa) prompts for a country."""
+    if country == "US":
+        return SYSTEM_PROMPT_US, LOAN_EXPLANATION_PROMPT_US, STRATEGY_EXPLANATION_PROMPT_US, RAG_QA_PROMPT_US
+    return SYSTEM_PROMPT_IN, LOAN_EXPLANATION_PROMPT_IN, STRATEGY_EXPLANATION_PROMPT_IN, RAG_QA_PROMPT_IN
 
 
 class AIService:
@@ -105,9 +160,11 @@ class AIService:
         rate_type: str,
         emi: float,
         remaining_months: int,
+        country: str = "IN",
     ) -> str:
         """Generate plain-language loan explanation."""
-        prompt = LOAN_EXPLANATION_PROMPT.format(
+        system, loan_tmpl, _, _ = _get_prompts(country)
+        prompt = loan_tmpl.format(
             bank_name=bank_name,
             loan_type=loan_type,
             principal=principal,
@@ -117,7 +174,7 @@ class AIService:
             emi=emi,
             remaining_months=remaining_months,
         )
-        return await self._chat(SYSTEM_PROMPT, prompt)
+        return await self._chat(system, prompt)
 
     async def explain_strategy(
         self,
@@ -127,9 +184,11 @@ class AIService:
         interest_saved: float,
         months_saved: int,
         payoff_order: list[str],
+        country: str = "IN",
     ) -> str:
-        """Generate strategy explanation with relay race metaphor."""
-        prompt = STRATEGY_EXPLANATION_PROMPT.format(
+        """Generate strategy explanation."""
+        system, _, strategy_tmpl, _ = _get_prompts(country)
+        prompt = strategy_tmpl.format(
             strategy_name=strategy_name,
             num_loans=num_loans,
             extra=extra,
@@ -137,10 +196,11 @@ class AIService:
             months_saved=months_saved,
             payoff_order=" → ".join(payoff_order),
         )
-        return await self._chat(SYSTEM_PROMPT, prompt)
+        return await self._chat(system, prompt)
 
-    async def ask_with_context(self, question: str, context_chunks: list[str]) -> str:
+    async def ask_with_context(self, question: str, context_chunks: list[str], country: str = "IN") -> str:
         """RAG-powered Q&A using retrieved context."""
+        system, _, _, rag_tmpl = _get_prompts(country)
         context = "\n\n---\n\n".join(context_chunks) if context_chunks else "No relevant context found."
-        prompt = RAG_QA_PROMPT.format(context=context, question=question)
-        return await self._chat(SYSTEM_PROMPT, prompt)
+        prompt = rag_tmpl.format(context=context, question=question)
+        return await self._chat(system, prompt)

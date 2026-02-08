@@ -20,13 +20,15 @@ from app.core.strategies import LoanSnapshot
 from app.core.optimization import MultiLoanOptimizer
 from app.core.financial_math import calculate_total_interest, calculate_interest_saved
 from app.core.indian_rules import compare_tax_regimes, LoanTaxInfo
+from app.core.usa_rules import compare_standard_vs_itemized, USLoanTaxInfo
+from app.core.country_rules import get_tax_bracket
 
 router = APIRouter(prefix="/api/optimizer", tags=["optimizer"])
 
 
-def _loan_to_snapshot(loan) -> LoanSnapshot:
+def _loan_to_snapshot(loan, country: str = "IN") -> LoanSnapshot:
     """Convert DB loan to LoanSnapshot for optimizer."""
-    return LoanSnapshot(
+    snapshot = LoanSnapshot(
         loan_id=str(loan.id),
         bank_name=loan.bank_name,
         loan_type=loan.loan_type,
@@ -40,7 +42,10 @@ def _loan_to_snapshot(loan) -> LoanSnapshot:
         eligible_24b=loan.eligible_24b,
         eligible_80e=loan.eligible_80e,
         eligible_80eea=loan.eligible_80eea,
+        eligible_mortgage_deduction=loan.eligible_mortgage_deduction,
+        eligible_student_loan_deduction=loan.eligible_student_loan_deduction,
     )
+    return snapshot
 
 
 @router.post("/analyze", response_model=OptimizationResponse)
@@ -57,7 +62,8 @@ async def analyze(
     if not selected:
         raise HTTPException(status_code=400, detail="No matching active loans found")
 
-    snapshots = [_loan_to_snapshot(l) for l in selected]
+    country = user.country or "IN"
+    snapshots = [_loan_to_snapshot(l, country) for l in selected]
     lump_dict = {ls.month: ls.amount for ls in req.lump_sums}
 
     optimizer = MultiLoanOptimizer(
@@ -65,7 +71,7 @@ async def analyze(
         monthly_extra=req.monthly_extra,
         lump_sums=lump_dict,
     )
-    result = optimizer.optimize(strategies=req.strategies, tax_bracket=req.tax_bracket)
+    result = optimizer.optimize(strategies=req.strategies, tax_bracket=req.tax_bracket, country=country)
 
     return OptimizationResponse(
         baseline_total_interest=result.baseline_total_interest,
@@ -199,10 +205,35 @@ async def tax_impact(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """Compare tax regimes considering loan deductions."""
+    """Compare tax regimes/deductions considering loan deductions."""
     repo = LoanRepository(db)
     loans = await repo.list_by_user(user.id, status="active")
+    country = user.country or "IN"
 
+    if country == "US":
+        us_loans = [
+            USLoanTaxInfo(
+                loan_type=l.loan_type,
+                annual_interest_paid=Decimal(str(l.emi_amount)) * 12 * Decimal("0.5"),
+                annual_principal_paid=Decimal(str(l.emi_amount)) * 12 * Decimal("0.5"),
+                eligible_mortgage_deduction=l.eligible_mortgage_deduction,
+                eligible_student_loan_deduction=l.eligible_student_loan_deduction,
+                outstanding_principal=Decimal(str(l.outstanding_principal)),
+            )
+            for l in loans
+        ]
+        filing_status = user.filing_status or "single"
+        result = compare_standard_vs_itemized(req.annual_income, us_loans, filing_status)
+        return TaxImpactResponse(
+            old_regime_tax=result["standard"]["tax"],
+            new_regime_tax=result["itemized"]["tax"],
+            recommended=result["recommended"],
+            savings=result["savings"],
+            explanation=result["explanation"],
+            deductions={},
+        )
+
+    # India: Old vs New regime
     tax_loans = [
         LoanTaxInfo(
             loan_type=l.loan_type,

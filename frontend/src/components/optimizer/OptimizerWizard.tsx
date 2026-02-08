@@ -2,13 +2,12 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useMutation } from "@tanstack/react-query";
 import api from "../../lib/api";
+import { useCountryConfig } from "../../hooks/useCountryConfig";
 import type { Loan, OptimizationResult } from "../../types";
 import { StepSelectLoans } from "./StepSelectLoans";
 import { StepSetBudget } from "./StepSetBudget";
 import { StepChooseStrategy } from "./StepChooseStrategy";
 import { StepResults } from "./StepResults";
-
-const STEPS = ["Select Loans", "Set Budget", "Choose Strategy", "Results"];
 
 interface Props {
   loans: Loan[];
@@ -16,12 +15,20 @@ interface Props {
 
 export function OptimizerWizard({ loans }: Props) {
   const { t } = useTranslation();
+  const config = useCountryConfig();
   const [step, setStep] = useState(0);
   const [selectedLoanIds, setSelectedLoanIds] = useState<string[]>(loans.map((l) => l.id));
-  const [monthlyExtra, setMonthlyExtra] = useState(5000);
+  const [monthlyExtra, setMonthlyExtra] = useState(config.sliderRanges.monthlyExtra.max / 10);
   const [lumpSums, setLumpSums] = useState<{ month: number; amount: number }[]>([]);
   const [strategy, setStrategy] = useState("smart_hybrid");
   const [results, setResults] = useState<OptimizationResult | null>(null);
+
+  const steps = [
+    t("optimizer.wizard.stepSelectLoans"),
+    t("optimizer.wizard.stepSetBudget"),
+    t("optimizer.wizard.stepChooseStrategy"),
+    t("optimizer.wizard.stepResults"),
+  ];
 
   const analyzeMutation = useMutation({
     mutationFn: () =>
@@ -53,7 +60,7 @@ export function OptimizerWizard({ loans }: Props) {
 
       {/* Progress Steps */}
       <div className="flex items-center gap-2">
-        {STEPS.map((label, i) => (
+        {steps.map((label, i) => (
           <div key={i} className="flex items-center gap-2 flex-1">
             <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
               i <= step ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-500"
@@ -63,7 +70,7 @@ export function OptimizerWizard({ loans }: Props) {
             <span className={`text-sm hidden md:block ${i <= step ? "text-blue-600 font-medium" : "text-gray-400"}`}>
               {label}
             </span>
-            {i < STEPS.length - 1 && <div className={`flex-1 h-0.5 ${i < step ? "bg-blue-600" : "bg-gray-200"}`} />}
+            {i < steps.length - 1 && <div className={`flex-1 h-0.5 ${i < step ? "bg-blue-600" : "bg-gray-200"}`} />}
           </div>
         ))}
       </div>
@@ -108,7 +115,7 @@ export function OptimizerWizard({ loans }: Props) {
             disabled={selectedLoanIds.length === 0 || analyzeMutation.isPending}
             className="px-6 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
           >
-            {analyzeMutation.isPending ? "Analyzing..." : step === 2 ? "Run Optimizer" : t("common.next")}
+            {analyzeMutation.isPending ? t("optimizer.wizard.analyzing") : step === 2 ? t("optimizer.wizard.runOptimizer") : t("common.next")}
           </button>
         )}
       </div>

@@ -1,7 +1,8 @@
 {
   "app": {
     "title": "लोन ऑप्टिमाइज़र",
-    "tagline": "भारतीय लोन के लिए स्मार्ट रीपेमेंट"
+    "tagline": "भारतीय लोन के लिए स्मार्ट रीपेमेंट",
+    "taglineGlobal": "स्मार्ट लोन रीपेमेंट ऑप्टिमाइज़र"
   },
   "nav": {
     "dashboard": "डैशबोर्ड",
@@ -22,7 +23,15 @@
     "confirm": "पुष्टि करें",
     "back": "वापस",
     "next": "अगला",
-    "currency": "₹"
+    "currency": "₹",
+    "saving": "सहेज रहे हैं...",
+    "selectAll": "सभी चुनें",
+    "deselectAll": "सभी हटाएं",
+    "noActiveLoans": "कोई सक्रिय लोन नहीं",
+    "noActiveLoansDesc": "स्मार्ट ऑप्टिमाइज़र का उपयोग करने के लिए कम से कम एक लोन जोड़ें",
+    "day": "दिन",
+    "month": "महीना",
+    "months": "महीने"
   },
   "dashboard": {
     "totalDebt": "कुल बकाया कर्ज़",
@@ -30,7 +39,49 @@
     "debtFreeBy": "कर्ज़ मुक्ति तिथि",
     "addLoan": "लोन जोड़ें",
     "scanDoc": "दस्तावेज़ स्कैन करें",
-    "runOptimizer": "ऑप्टिमाइज़र चलाएं"
+    "runOptimizer": "ऑप्टिमाइज़र चलाएं",
+    "noLoansYet": "अभी कोई लोन नहीं",
+    "noLoansDesc": "स्मार्ट रीपेमेंट शुरू करने के लिए अपना पहला लोन जोड़ें",
+    "yourLoans": "आपके लोन",
+    "activeLoans": "सक्रिय लोन",
+    "perMonth": "प्रति माह",
+    "longestRemaining": "सबसे लंबा बाकी लोन",
+    "paid": "चुकाया"
+  },
+  "loans": {
+    "addLoan": "लोन जोड़ें",
+    "noLoansFound": "कोई लोन नहीं मिला",
+    "noLoansDesc": "ट्रैकिंग और ऑप्टिमाइज़ करने के लिए अपना पहला लोन जोड़ें",
+    "bank": "बैंक",
+    "type": "प्रकार",
+    "outstanding": "बकाया",
+    "rate": "दर",
+    "emi": "EMI",
+    "remaining": "शेष",
+    "all": "सभी"
+  },
+  "loanForm": {
+    "title": "नया लोन जोड़ें",
+    "selectBank": "बैंक चुनें",
+    "loanType": "लोन प्रकार",
+    "originalAmount": "मूल राशि",
+    "outstandingAmount": "बकाया राशि",
+    "interestRate": "ब्याज दर (%)",
+    "rateType": "दर प्रकार",
+    "totalTenure": "कुल अवधि (महीने)",
+    "remainingTenure": "शेष अवधि (महीने)",
+    "emiAmount": "EMI राशि",
+    "emiDueDate": "EMI देय तिथि",
+    "dayHint": "दिन (1-28)",
+    "taxDeductions": "कर कटौती",
+    "section80c": "धारा 80C (मूलधन)",
+    "section24b": "धारा 24(b) (होम लोन ब्याज)",
+    "section80e": "धारा 80E (शिक्षा लोन ब्याज)",
+    "section80eea": "धारा 80EEA (पहली बार खरीदार)",
+    "mortgageDeduction": "गृह लोन ब्याज कटौती",
+    "studentLoanDeduction": "शिक्षा लोन ब्याज कटौती",
+    "saving": "सहेज रहे हैं...",
+    "saveLoan": "लोन सहेजें"
   },
   "optimizer": {
     "title": "स्मार्ट रीपेमेंट ऑप्टिमाइज़र",
@@ -43,7 +94,44 @@
     "smartHybrid": "स्मार्ट हाइब्रिड (अनुशंसित)",
     "interestSaved": "ब्याज बचत",
     "monthsSaved": "महीने बचे",
-    "savePlan": "यह प्लान सहेजें"
+    "savePlan": "यह प्लान सहेजें",
+    "wizard": {
+      "stepSelectLoans": "लोन चुनें",
+      "stepSetBudget": "बजट सेट करें",
+      "stepChooseStrategy": "रणनीति चुनें",
+      "stepResults": "परिणाम",
+      "analyzing": "विश्लेषण...",
+      "runOptimizer": "ऑप्टिमाइज़र चलाएं"
+    },
+    "budget": {
+      "howMuchExtra": "आप कितना अतिरिक्त भुगतान कर सकते हैं?",
+      "gullakMode": "गुल्लक मोड",
+      "piggyBankMode": "पिग्गी बैंक मोड",
+      "budgetModeDesc": "दैनिक बचत में सोचें — कमिट करना आसान!",
+      "dailySaving": "दैनिक बचत",
+      "monthlyExtra": "मासिक अतिरिक्त भुगतान",
+      "lumpSum": "एकमुश्त भुगतान",
+      "lumpSumDesc": "बोनस, अप्रत्याशित आय",
+      "add": "+ जोड़ें",
+      "amount": "राशि",
+      "month": "महीना",
+      "remove": "हटाएं"
+    },
+    "strategy": {
+      "recommended": "अनुशंसित",
+      "smartHybridDesc": "कर-पश्चात अनुकूलित, त्वरित मनोवैज्ञानिक जीत के साथ",
+      "avalancheDesc": "सबसे अधिक ब्याज दर वाले लोन को पहले निशाना बनाता है — सबसे ज्यादा पैसा बचाता है",
+      "snowballDesc": "सबसे छोटी शेष राशि पहले खत्म करता है — सबसे तेज़ जीत"
+    },
+    "results": {
+      "youSave": "आप बचाते हैं",
+      "debtFree": "कर्ज-मुक्त",
+      "monthsEarlier": "महीने पहले",
+      "comparison": "रणनीति तुलना",
+      "payoffOrder": "भुगतान क्रम:",
+      "best": "सर्वश्रेष्ठ",
+      "planSaved": "प्लान सहेजा गया!"
+    }
   },
   "emi": {
     "title": "EMI कैलकुलेटर",
@@ -52,7 +140,8 @@
     "tenure": "अवधि (वर्ष)",
     "monthlyEmi": "मासिक EMI",
     "totalInterest": "कुल ब्याज",
-    "totalPayment": "कुल भुगतान"
+    "totalPayment": "कुल भुगतान",
+    "paymentBreakdown": "भुगतान विवरण"
   },
   "scanner": {
     "title": "लोन दस्तावेज़ स्कैन करें",
@@ -70,6 +159,29 @@
     "statusReviewNeeded": "समीक्षा आवश्यक",
     "statusFailed": "विफल"
   },
+  "auth": {
+    "signIn": "साइन इन",
+    "signUp": "साइन अप",
+    "email": "ईमेल",
+    "password": "पासवर्ड",
+    "confirmPassword": "पासवर्ड की पुष्टि करें",
+    "fullName": "पूरा नाम",
+    "forgotPassword": "पासवर्ड भूल गए?",
+    "resetPassword": "पासवर्ड रीसेट करें",
+    "sendResetLink": "रीसेट लिंक भेजें",
+    "backToSignIn": "साइन इन पर वापस जाएं",
+    "createAccount": "खाता बनाएं",
+    "orContinueWith": "या ईमेल से जारी रखें",
+    "continueWithGoogle": "Google से जारी रखें",
+    "signingIn": "साइन इन हो रहा है...",
+    "signingUp": "खाता बना रहे हैं...",
+    "sendingReset": "रीसेट लिंक भेज रहे हैं...",
+    "resetSuccess": "पासवर्ड रीसेट ईमेल भेजा गया! अपना इनबॉक्स देखें।",
+    "passwordMinLength": "पासवर्ड कम से कम 8 अक्षरों का होना चाहिए",
+    "passwordMismatch": "पासवर्ड मेल नहीं खाते",
+    "emailRequired": "ईमेल आवश्यक है",
+    "nameRequired": "पूरा नाम आवश्यक है"
+  },
   "loanDetail": {
     "notFound": "लोन नहीं मिला",
     "backToLoans": "लोन पर वापस जाएं",
@@ -86,5 +198,29 @@
     "principal": "मूलधन",
     "interest": "ब्याज",
     "balance": "शेष राशि"
+  },
+  "settings": {
+    "displayName": "प्रदर्शन नाम",
+    "language": "भाषा",
+    "country": "देश",
+    "taxRegime": "कर व्यवस्था",
+    "filingStatus": "फाइलिंग स्थिति",
+    "annualIncome": "वार्षिक आय",
+    "forTaxOptimization": "कर अनुकूलन के लिए",
+    "dataManagement": "डेटा प्रबंधन",
+    "exportData": "मेरा डेटा निर्यात करें",
+    "dpdpAct": "DPDP कानून",
+    "ccpa": "CCPA",
+    "deleteAccount": "खाता हटाएं",
+    "deleteWarning": "यह आपका सारा डेटा स्थायी रूप से हटा देगा। क्या आप निश्चित हैं?",
+    "appVersion": "ऐप संस्करण",
+    "oldRegime": "पुरानी व्यवस्था",
+    "newRegime": "नई व्यवस्था",
+    "single": "अविवाहित",
+    "marriedJointly": "विवाहित संयुक्त फाइलिंग",
+    "marriedSeparately": "विवाहित अलग फाइलिंग",
+    "headOfHousehold": "परिवार का मुखिया",
+    "india": "भारत",
+    "unitedStates": "संयुक्त राज्य अमेरिका"
   }
 }

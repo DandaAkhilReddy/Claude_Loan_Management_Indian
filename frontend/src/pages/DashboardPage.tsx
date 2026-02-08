@@ -16,6 +16,7 @@ const LOAN_TYPE_COLORS: Record<string, string> = {
   education: "bg-yellow-100 text-yellow-700",
   gold: "bg-amber-100 text-amber-700",
   credit_card: "bg-red-100 text-red-700",
+  business: "bg-teal-100 text-teal-700",
 };
 
 export function DashboardPage() {
@@ -34,8 +35,8 @@ export function DashboardPage() {
   if (activeLoans.length === 0) {
     return (
       <EmptyState
-        title="No loans yet"
-        description="Add your first loan to get started with smart repayment optimization"
+        title={t("dashboard.noLoansYet")}
+        description={t("dashboard.noLoansDesc")}
         action={{ label: t("dashboard.addLoan"), onClick: () => navigate("/loans?add=true") }}
       />
     );
@@ -52,17 +53,17 @@ export function DashboardPage() {
         <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
           <p className="text-sm text-gray-500 mb-1">{t("dashboard.totalDebt")}</p>
           <CurrencyDisplay amount={totalDebt} className="text-2xl font-bold text-gray-900" />
-          <p className="text-xs text-gray-400 mt-1">{activeLoans.length} active loan{activeLoans.length > 1 ? "s" : ""}</p>
+          <p className="text-xs text-gray-400 mt-1">{t("dashboard.activeLoans", { count: activeLoans.length })}</p>
         </div>
         <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
           <p className="text-sm text-gray-500 mb-1">{t("dashboard.monthlyEmi")}</p>
           <CurrencyDisplay amount={totalEMI} className="text-2xl font-bold text-gray-900" />
-          <p className="text-xs text-gray-400 mt-1">per month</p>
+          <p className="text-xs text-gray-400 mt-1">{t("dashboard.perMonth")}</p>
         </div>
         <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
           <p className="text-sm text-gray-500 mb-1">{t("dashboard.debtFreeBy")}</p>
           <p className="text-2xl font-bold text-gray-900">{formatMonths(maxTenure)}</p>
-          <p className="text-xs text-gray-400 mt-1">longest remaining loan</p>
+          <p className="text-xs text-gray-400 mt-1">{t("dashboard.longestRemaining")}</p>
         </div>
       </div>
 
@@ -93,7 +94,7 @@ export function DashboardPage() {
 
       {/* Loan Cards */}
       <div>
-        <h2 className="text-lg font-semibold text-gray-900 mb-3">Your Loans</h2>
+        <h2 className="text-lg font-semibold text-gray-900 mb-3">{t("dashboard.yourLoans")}</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {activeLoans.map((loan) => (
             <div
@@ -109,19 +110,19 @@ export function DashboardPage() {
               </div>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Outstanding</span>
+                  <span className="text-gray-500">{t("loans.outstanding")}</span>
                   <CurrencyDisplay amount={loan.outstanding_principal} className="font-medium text-gray-900" />
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Rate</span>
+                  <span className="text-gray-500">{t("loans.rate")}</span>
                   <span className="font-medium text-gray-900">{loan.interest_rate}%</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-500">EMI</span>
+                  <span className="text-gray-500">{t("loans.emi")}</span>
                   <CurrencyDisplay amount={loan.emi_amount} className="font-medium text-gray-900" />
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Remaining</span>
+                  <span className="text-gray-500">{t("loans.remaining")}</span>
                   <span className="font-medium text-gray-900">{formatMonths(loan.remaining_tenure_months)}</span>
                 </div>
               </div>
@@ -134,7 +135,7 @@ export function DashboardPage() {
                   />
                 </div>
                 <p className="text-xs text-gray-400 mt-1">
-                  {Math.round((1 - loan.outstanding_principal / loan.principal_amount) * 100)}% paid
+                  {Math.round((1 - loan.outstanding_principal / loan.principal_amount) * 100)}% {t("dashboard.paid")}
                 </p>
               </div>
             </div>
