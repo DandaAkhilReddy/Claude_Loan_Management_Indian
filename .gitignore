@@ -70,5 +70,8 @@ Desktop.ini
 *.swp
 tmpclaude-*
 
+# Design reference PDFs (removed to keep repo lean)
+docs/reference/
+
 # Claude Code
 .claude/

@@ -411,7 +411,7 @@ Indian_Loan_Analyzer_Claude/
 │   │   ├── schemas/               # Pydantic v2 request/response models
 │   │   ├── services/              # Azure AI, auth, blob, translator, TTS
 │   │   └── config.py              # Environment config (pydantic-settings)
-│   ├── tests/                     # 409 unit tests (financial math, API, services)
+│   ├── tests/                     # 464 tests across 29 test files
 │   ├── alembic/                   # Database migrations
 │   ├── Dockerfile                 # Python 3.11-slim + uvicorn
 │   ├── .env.example               # Template for backend env vars
@@ -443,8 +443,7 @@ Indian_Loan_Analyzer_Claude/
 │   └── smoke-test.sh              # Post-deployment health checks
 │
 ├── docs/
-│   ├── CTO_REVIEW.md              # Architecture review (8.2/10)
-│   └── reference/                 # 9 original design PDFs
+│   └── CTO_REVIEW.md              # Architecture review (8.2/10)
 │
 ├── docker-compose.yml             # Local dev: PostgreSQL 16 + pgvector
 ├── docker-compose.prod.yml        # Production: full stack with nginx
@@ -600,9 +599,9 @@ Automated via **GitHub Actions** (`.github/workflows/deploy.yml`). Triggers on e
 ```
 push to main
      │
-     ├── test-backend ────── pip install → pytest (409 tests)
+     ├── test-backend ────── pip install → pytest (464 tests)
      │
-     ├── test-frontend ───── npm install → vitest (66 tests)
+     ├── test-frontend ───── npm install → vitest (163 tests)
      │
      └── build-and-deploy ── (runs after both test jobs pass)
               │
@@ -650,16 +649,17 @@ pip install -r requirements.txt
 pytest -v --tb=short
 ```
 
-**409 tests** covering:
+**464 tests** across 29 files covering:
 
 - `test_financial_math.py` — EMI calculation, amortization, reverse EMI, edge cases
 - `test_strategies.py` — All 4 repayment strategies with freed-EMI rollover
 - `test_indian_rules.py` — Tax deductions (80C, 24b, 80E, 80EEA), RBI prepayment rules
 - `test_optimization.py` — Multi-loan optimizer integration
-- `test_routes_*.py` — API endpoint request/response validation
-- `test_services.py` — Azure AI service mocks
-- `test_auth.py` — Firebase token verification
+- `test_*_routes.py` — API endpoint request/response validation (auth, loans, EMI, scanner, optimizer, AI)
+- `test_*_integration.py` — End-to-end integration tests (auth, loans, EMI, scanner, optimizer)
+- `test_*_service.py` — Azure AI, auth, blob, translator, TTS service mocks
 - `test_schemas.py` — Pydantic model validation
+- `test_country_rules.py`, `test_usa_rules.py` — Multi-country tax rules
 
 ### Frontend (vitest)
 
@@ -669,13 +669,20 @@ npm install
 npm test
 ```
 
-**66 tests** covering:
+**163 tests** across 12 files covering:
 
 - `format.test.ts` — Indian number formatting (INR ₹1,00,000), compact display (₹1L, ₹1Cr)
 - `emi-math.test.ts` — Client-side EMI calculations
 - `i18n.test.ts` — Translation keys for EN, HI, TE, ES locales
-- `App.test.tsx` — Route rendering and lazy loading
-- Component tests — ErrorBoundary, LoadingSpinner, CurrencyDisplay
+- `validators.test.ts` — Input validation rules
+- `useAuth.test.ts` — Auth hook: login, signup, logout, token verification (16 tests)
+- `api.test.ts` — Axios interceptors: token attach, 401/429/500 handling (21 tests)
+- `LoginPage.test.tsx` — Form rendering, view switching, validation, error messages (28 tests)
+- `ProtectedRoute.test.tsx` — Spinner, redirect, children rendering (5 tests)
+- `ErrorBoundary.test.tsx` — Error catching, retry, custom fallback (8 tests)
+- `firebase.test.ts` — Config validation, re-exports (13 tests)
+- `authStore.test.ts` — Zustand state management (6 tests)
+- `stores.test.ts` — All Zustand stores (12 tests)
 
 ### Production Build Check
 
