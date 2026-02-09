@@ -1,35 +1,31 @@
-"""API dependencies — auth, database, services."""
+"""API dependencies — auth paused for testing."""
 
-import asyncio
-from fastapi import Depends, HTTPException, Header
+import uuid
+from fastapi import Depends, Header
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import get_db
 from app.db.models import User
 from app.db.repositories.user_repo import UserRepository
-from app.services.auth_service import verify_firebase_token
+
+# ── Auth paused: upsert a dev user on every request (no token check) ──
+
+DEV_UID = "dev-admin"
+DEV_EMAIL = "admin@test.com"
+DEV_NAME = "Admin"
 
 
 async def get_current_user(
-    authorization: str = Header(..., description="Bearer <firebase_token>"),
+    authorization: str | None = Header(None),
     db: AsyncSession = Depends(get_db),
 ) -> User:
-    """Verify Firebase token and return/upsert user."""
-    if not authorization.startswith("Bearer "):
-        raise HTTPException(status_code=401, detail="Invalid authorization header")
-
-    token = authorization[7:]
-    claims = await asyncio.to_thread(verify_firebase_token, token)
-
-    if not claims:
-        raise HTTPException(status_code=401, detail="Invalid or expired token")
-
+    """Auth paused — return/upsert a dev user without verifying tokens."""
     repo = UserRepository(db)
     user = await repo.upsert(
-        firebase_uid=claims["uid"],
-        email=claims.get("email"),
-        phone=claims.get("phone"),
-        display_name=claims.get("name"),
+        firebase_uid=DEV_UID,
+        email=DEV_EMAIL,
+        phone=None,
+        display_name=DEV_NAME,
     )
     return user
 
@@ -38,19 +34,5 @@ async def get_optional_user(
     authorization: str | None = Header(None),
     db: AsyncSession = Depends(get_db),
 ) -> User | None:
-    """Optional auth — returns user or None (for public endpoints)."""
-    if not authorization or not authorization.startswith("Bearer "):
-        return None
-
-    token = authorization[7:]
-    claims = await asyncio.to_thread(verify_firebase_token, token)
-    if not claims:
-        return None
-
-    repo = UserRepository(db)
-    return await repo.upsert(
-        firebase_uid=claims["uid"],
-        email=claims.get("email"),
-        phone=claims.get("phone"),
-        display_name=claims.get("name"),
-    )
+    """Auth paused — always returns the dev user."""
+    return await get_current_user(authorization, db)

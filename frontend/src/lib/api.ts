@@ -1,5 +1,5 @@
+// Auth paused — no token attachment, no 401 redirect
 import axios from "axios";
-import { auth } from "./firebase";
 import { useToastStore } from "../store/toastStore";
 
 const api = axios.create({
@@ -8,22 +8,7 @@ const api = axios.create({
   headers: { "Content-Type": "application/json" },
 });
 
-// Auto-attach Firebase token
-api.interceptors.request.use(async (config) => {
-  const user = auth.currentUser;
-  if (user) {
-    try {
-      const token = await user.getIdToken();
-      config.headers.Authorization = `Bearer ${token}`;
-    } catch {
-      // Token refresh failed — request proceeds without auth;
-      // the 401 response interceptor will redirect to login
-    }
-  }
-  return config;
-});
-
-// Handle errors — redirect, toast notifications
+// Handle errors — toast notifications (no 401 redirect)
 api.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -31,26 +16,13 @@ api.interceptors.response.use(
 
     if (error.response) {
       const status = error.response.status;
-
-      if (status === 401) {
-        window.location.href = "/login";
-      } else if (status === 429) {
-        addToast({
-          type: "warning",
-          message: "Too many requests. Please wait a moment.",
-        });
+      if (status === 429) {
+        addToast({ type: "warning", message: "Too many requests. Please wait a moment." });
       } else if (status >= 500) {
-        addToast({
-          type: "error",
-          message: "Server error. Please try again later.",
-        });
+        addToast({ type: "error", message: "Server error. Please try again later." });
       }
     } else {
-      // No response — network error
-      addToast({
-        type: "error",
-        message: "Network error. Check your connection.",
-      });
+      addToast({ type: "error", message: "Network error. Check your connection." });
     }
 
     return Promise.reject(error);
