@@ -5,7 +5,7 @@ from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
     # Database
-    database_url: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/loan_analyzer"
+    database_url: str = ""  # REQUIRED — set via DATABASE_URL env var
 
     # Azure OpenAI
     azure_openai_endpoint: str = ""
@@ -35,7 +35,7 @@ class Settings(BaseSettings):
     # App
     environment: str = "development"
     log_level: str = "INFO"
-    cors_origins: str = "http://localhost:5173"  # comma-separated in production
+    cors_origins: str = "https://app-loan-analyzer-web.azurewebsites.net"  # comma-separated
 
     class Config:
         env_file = ".env"
