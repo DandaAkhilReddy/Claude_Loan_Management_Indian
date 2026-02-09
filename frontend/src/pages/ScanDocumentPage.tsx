@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useDropzone } from "react-dropzone";
@@ -78,11 +78,13 @@ export function ScanDocumentPage() {
   });
 
   // Initialize edit fields from scan results
-  if (scanStatus?.extracted_fields && Object.keys(editFields).length === 0) {
-    const initial: Record<string, string> = {};
-    scanStatus.extracted_fields.forEach((f) => { initial[f.field_name] = f.value; });
-    setEditFields(initial);
-  }
+  useEffect(() => {
+    if (scanStatus?.extracted_fields && Object.keys(editFields).length === 0) {
+      const initial: Record<string, string> = {};
+      scanStatus.extracted_fields.forEach((f) => { initial[f.field_name] = f.value; });
+      setEditFields(initial);
+    }
+  }, [scanStatus]);
 
   const statusConfig = scanStatus ? STATUS_CONFIG[scanStatus.status] : null;
 

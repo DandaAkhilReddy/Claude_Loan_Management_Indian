@@ -24,8 +24,8 @@ export function useAuth() {
           await api.post("/api/auth/verify-token", null, {
             headers: { Authorization: `Bearer ${token}` },
           });
-        } catch {
-          // Token verification failed — user will need to re-login
+        } catch (err) {
+          console.warn("Token verification failed:", err);
         }
       }
     });

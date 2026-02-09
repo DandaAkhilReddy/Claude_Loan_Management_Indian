@@ -5,6 +5,13 @@ import hi from "../locales/hi.json";
 import te from "../locales/te.json";
 import es from "../locales/es.json";
 
+// Suppress i18next promotional console.log during init
+const _origLog = console.log;
+console.log = (...args: unknown[]) => {
+  if (typeof args[0] === "string" && args[0].includes("locize")) return;
+  _origLog(...args);
+};
+
 i18n.use(initReactI18next).init({
   resources: {
     en: { translation: en },
@@ -16,5 +23,7 @@ i18n.use(initReactI18next).init({
   fallbackLng: "en",
   interpolation: { escapeValue: false },
 });
+
+console.log = _origLog;
 
 export default i18n;

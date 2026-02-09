@@ -154,9 +154,16 @@ export function SettingsPage() {
           {t("settings.exportData")} ({t(config.privacyLawKey)})
         </button>
         <button
-          onClick={() => {
+          onClick={async () => {
             if (confirm(t("settings.deleteWarning"))) {
-              api.delete("/api/user/delete-account");
+              try {
+                await api.delete("/api/user/delete-account");
+                const { auth } = await import("../lib/firebase");
+                await auth.signOut();
+                window.location.href = "/login";
+              } catch {
+                // Error toast already shown by response interceptor
+              }
             }
           }}
           className="w-full py-2 border border-red-300 rounded-lg text-sm text-red-600 hover:bg-red-50"
