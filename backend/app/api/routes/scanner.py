@@ -35,6 +35,8 @@ async def upload_document(
 
     # Upload to Azure Blob
     blob_service = BlobService()
+    if not blob_service.is_configured:
+        raise HTTPException(status_code=503, detail="Document scanning is temporarily unavailable (storage not configured)")
     blob_url = await blob_service.upload_file(
         content=content,
         filename=file.filename or "document",

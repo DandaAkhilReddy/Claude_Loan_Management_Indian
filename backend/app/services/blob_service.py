@@ -24,6 +24,10 @@ class BlobService:
             self.client = None
             logger.warning("Azure Blob Storage not configured")
 
+    @property
+    def is_configured(self) -> bool:
+        return self.client is not None
+
     async def upload_file(
         self, content: bytes, filename: str, content_type: str, user_id: str
     ) -> str:
