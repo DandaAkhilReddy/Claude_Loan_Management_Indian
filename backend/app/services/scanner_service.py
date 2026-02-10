@@ -1,15 +1,19 @@
-"""Azure Document Intelligence integration using Layout model.
+"""Document scanner: GPT-4o Vision (primary) + Azure Doc Intel regex (fallback).
 
-Uses Layout model (NOT prebuilt-bankStatement.us which is US-only).
-Extracts tables + text and post-processes with regex for Indian and US banks.
+Primary: Sends images directly to GPT-4o-mini Vision for structured extraction.
+Fallback: Azure Document Intelligence Layout model + regex patterns.
+PDFs: Azure Doc Intel extracts text → GPT-4o-mini analyzes text.
 """
 
 import re
+import json
 import time
+import base64
 import asyncio
 import logging
 from dataclasses import dataclass
 
+from openai import AsyncAzureOpenAI
 from azure.ai.documentintelligence import DocumentIntelligenceClient
 from azure.ai.documentintelligence.models import AnalyzeDocumentRequest, DocumentAnalysisFeature
 from azure.core.credentials import AzureKeyCredential
@@ -17,6 +21,27 @@ from azure.core.credentials import AzureKeyCredential
 from app.config import settings
 
 logger = logging.getLogger(__name__)
+
+# ---------- GPT-4o Vision prompts ----------
+
+EXTRACTION_SYSTEM_PROMPT = """You are a document analysis AI that extracts loan/financial details from documents.
+Extract whatever financial information you can find. Return a JSON object with these fields:
+- bank_name: The bank or financial institution name (e.g., "SBI", "HDFC", "Chase")
+- loan_type: One of: home, personal, car, education, gold, credit_card, business (best guess)
+- principal_amount: The loan principal/sanctioned amount as a plain number string without commas or currency symbols (e.g., "2500000")
+- interest_rate: Annual interest rate as a number string (e.g., "8.5")
+- emi_amount: Monthly EMI/installment as a plain number string without commas (e.g., "21000")
+- tenure_months: Loan tenure in months as a number string (e.g., "240"). Convert years to months if needed.
+- account_number: Loan or account number if visible
+
+Rules:
+- Return "" (empty string) for any field you cannot find in the document.
+- Only return values you are confident about from the document content.
+- Remove currency symbols (₹, $, etc.) and commas from amounts.
+- If the document is not a loan/financial document, still try to extract any financial amounts visible.
+- Always return valid JSON."""
+
+EXTRACTION_USER_PROMPT = "Extract all loan and financial details from this document."
 
 
 @dataclass
@@ -167,17 +192,122 @@ def _extract_with_patterns(text: str, field: str, patterns: dict) -> tuple[str, 
 
 
 class ScannerService:
-    """Azure Document Intelligence scanner for loan documents."""
+    """Document scanner: GPT-4o Vision (primary) + Azure Doc Intel regex (fallback)."""
 
     def __init__(self):
         if settings.azure_doc_intel_endpoint and settings.azure_doc_intel_key:
-            self.client = DocumentIntelligenceClient(
+            self.doc_intel_client = DocumentIntelligenceClient(
                 endpoint=settings.azure_doc_intel_endpoint,
                 credential=AzureKeyCredential(settings.azure_doc_intel_key),
             )
         else:
-            self.client = None
+            self.doc_intel_client = None
             logger.warning("Azure Document Intelligence not configured")
+
+        if settings.azure_openai_endpoint and settings.azure_openai_key:
+            self.ai_client = AsyncAzureOpenAI(
+                azure_endpoint=settings.azure_openai_endpoint,
+                api_key=settings.azure_openai_key,
+                api_version="2024-10-21",
+            )
+        else:
+            self.ai_client = None
+            logger.warning("Azure OpenAI not configured — AI extraction unavailable")
+
+    # ---------- Primary: GPT-4o Vision extraction ----------
+
+    async def analyze_with_ai(self, content: bytes, content_type: str) -> list[ExtractedField]:
+        """Use GPT-4o Vision to extract loan fields from any document."""
+        if not self.ai_client:
+            raise RuntimeError("Azure OpenAI not configured")
+
+        start_time = time.time()
+
+        if content_type in ("image/png", "image/jpeg", "image/jpg"):
+            # Images: send directly to GPT-4o vision as base64
+            b64 = base64.b64encode(content).decode("utf-8")
+            messages = [
+                {"role": "system", "content": EXTRACTION_SYSTEM_PROMPT},
+                {"role": "user", "content": [
+                    {"type": "text", "text": EXTRACTION_USER_PROMPT},
+                    {"type": "image_url", "image_url": {
+                        "url": f"data:{content_type};base64,{b64}",
+                    }},
+                ]},
+            ]
+        else:
+            # PDFs: extract text with Azure Doc Intel, then send text to GPT-4o
+            text = await self._extract_text(content, content_type)
+            if not text.strip():
+                logger.warning("No text extracted from PDF")
+                return []
+            messages = [
+                {"role": "system", "content": EXTRACTION_SYSTEM_PROMPT},
+                {"role": "user", "content": f"{EXTRACTION_USER_PROMPT}\n\nDocument text:\n{text[:4000]}"},
+            ]
+
+        response = await self.ai_client.chat.completions.create(
+            model=settings.azure_openai_deployment,
+            messages=messages,
+            temperature=0.1,
+            max_tokens=500,
+            response_format={"type": "json_object"},
+        )
+
+        raw = response.choices[0].message.content or "{}"
+        fields = self._parse_ai_response(raw)
+
+        elapsed_ms = int((time.time() - start_time) * 1000)
+        logger.info(f"AI extraction completed in {elapsed_ms}ms, extracted {len(fields)} fields")
+        return fields
+
+    def _parse_ai_response(self, raw_json: str) -> list[ExtractedField]:
+        """Parse GPT-4o JSON response into ExtractedField list."""
+        try:
+            data = json.loads(raw_json)
+        except json.JSONDecodeError:
+            logger.error(f"Failed to parse AI response: {raw_json[:200]}")
+            return []
+
+        field_map = {
+            "bank_name": "bank_name",
+            "loan_type": "loan_type",
+            "principal_amount": "principal_amount",
+            "interest_rate": "interest_rate",
+            "emi_amount": "emi_amount",
+            "tenure_months": "tenure_months",
+            "account_number": "account_number",
+        }
+
+        fields = []
+        for json_key, field_name in field_map.items():
+            value = str(data.get(json_key, "")).strip()
+            if value:
+                # Clean amounts: remove currency symbols, commas
+                if field_name in ("principal_amount", "emi_amount"):
+                    value = re.sub(r"[₹$,\s]", "", value)
+                if field_name == "interest_rate":
+                    value = value.replace("%", "").strip()
+                fields.append(ExtractedField(field_name, value, 0.90))
+        return fields
+
+    async def _extract_text(self, content: bytes, content_type: str) -> str:
+        """Extract raw text from a document using Azure Doc Intel."""
+        if not self.doc_intel_client:
+            return ""
+        poller = await asyncio.to_thread(
+            self.doc_intel_client.begin_analyze_document,
+            "prebuilt-layout",
+            body=content,
+            content_type=content_type,
+        )
+        result = await asyncio.to_thread(poller.result)
+        text = result.content or ""
+        if result.tables:
+            for table in result.tables:
+                for cell in table.cells:
+                    text += f" {cell.content}"
+        return text
 
     async def analyze_document(self, document_url: str, country: str = "IN") -> list[ExtractedField]:
         """Analyze a document using Azure Layout model.
@@ -189,13 +319,13 @@ class ScannerService:
         Returns:
             List of extracted fields with confidence scores
         """
-        if not self.client:
+        if not self.doc_intel_client:
             raise RuntimeError("Azure Document Intelligence not configured")
 
         start_time = time.time()
 
         poller = await asyncio.to_thread(
-            self.client.begin_analyze_document,
+            self.doc_intel_client.begin_analyze_document,
             "prebuilt-layout",
             AnalyzeDocumentRequest(url_source=document_url),
         )
@@ -267,14 +397,14 @@ class ScannerService:
         return fields
 
     async def analyze_from_bytes(self, content: bytes, content_type: str, country: str = "IN") -> list[ExtractedField]:
-        """Analyze a document from raw bytes."""
-        if not self.client:
+        """Analyze a document from raw bytes (regex fallback)."""
+        if not self.doc_intel_client:
             raise RuntimeError("Azure Document Intelligence not configured")
 
         start_time = time.time()
 
         poller = await asyncio.to_thread(
-            self.client.begin_analyze_document,
+            self.doc_intel_client.begin_analyze_document,
             "prebuilt-layout",
             body=content,
             content_type=content_type,

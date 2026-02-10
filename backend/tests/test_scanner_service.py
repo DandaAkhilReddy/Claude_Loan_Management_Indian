@@ -37,12 +37,15 @@ from app.services.scanner_service import (
 
 @pytest.fixture
 def scanner():
-    """ScannerService with client=None (Document Intelligence not configured)."""
+    """ScannerService with clients=None (Azure services not configured)."""
     with patch("app.services.scanner_service.settings") as mock_settings:
         mock_settings.azure_doc_intel_endpoint = ""
         mock_settings.azure_doc_intel_key = ""
+        mock_settings.azure_openai_endpoint = ""
+        mock_settings.azure_openai_key = ""
         svc = ScannerService()
-        assert svc.client is None
+        assert svc.doc_intel_client is None
+        assert svc.ai_client is None
         return svc
 
 

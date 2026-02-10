@@ -1,6 +1,7 @@
 """Scanner routes — document upload, OCR progress, confirmation."""
 
 import math
+import logging
 from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -13,6 +14,8 @@ from app.db.repositories.loan_repo import LoanRepository
 from app.services.blob_service import BlobService
 from app.services.scanner_service import ScannerService
 from app.schemas.scanner import UploadResponse, ScanStatusResponse, ConfirmScanRequest, ExtractedField
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/scanner", tags=["scanner"])
 
@@ -61,7 +64,20 @@ async def upload_document(
     try:
         await repo.update_status(job.id, user.id, "processing")
         scanner = ScannerService()
-        fields = await scanner.analyze_from_bytes(content, file.content_type)
+
+        # Primary: GPT-4o Vision extraction (works with any document)
+        try:
+            fields = await scanner.analyze_with_ai(content, file.content_type)
+        except Exception as ai_err:
+            logger.warning(f"AI extraction failed, falling back to regex: {ai_err}")
+            fields = []
+
+        # Fallback: Azure Doc Intel + regex patterns
+        if not fields:
+            try:
+                fields = await scanner.analyze_from_bytes(content, file.content_type)
+            except Exception:
+                fields = []
 
         extracted = {f.field_name: f.value for f in fields}
         confidences = {f.field_name: f.confidence for f in fields}
