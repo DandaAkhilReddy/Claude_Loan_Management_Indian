@@ -17,41 +17,51 @@ export function LoanForm({ onSubmit, onClose, isLoading, initialData }: Props) {
   const [form, setForm] = useState({
     bank_name: initialData?.bank_name || "",
     loan_type: initialData?.loan_type || "home",
-    principal_amount: initialData?.principal_amount || "",
-    outstanding_principal: initialData?.outstanding_principal || "",
+    loan_amount: initialData?.outstanding_principal || initialData?.principal_amount || "",
     interest_rate: initialData?.interest_rate || "",
-    interest_rate_type: initialData?.interest_rate_type || "floating",
-    tenure_months: initialData?.tenure_months || "",
-    remaining_tenure_months: initialData?.remaining_tenure_months || "",
     emi_amount: initialData?.emi_amount || "",
-    emi_due_date: initialData?.emi_due_date || "",
-    // India tax sections
-    eligible_80c: initialData?.eligible_80c || false,
-    eligible_24b: initialData?.eligible_24b || false,
-    eligible_80e: initialData?.eligible_80e || false,
-    eligible_80eea: initialData?.eligible_80eea || false,
-    // US deductions
-    eligible_mortgage_deduction: initialData?.eligible_mortgage_deduction || false,
-    eligible_student_loan_deduction: initialData?.eligible_student_loan_deduction || false,
   });
 
-  const handleChange = (field: string, value: any) => {
+  const handleChange = (field: string, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const amount = Number(form.loan_amount);
+    const rate = Number(form.interest_rate);
+    const emi = Number(form.emi_amount);
+
+    // Auto-calculate tenure: n = -log(1 - P*r/EMI) / log(1+r)
+    let tenure = 240;
+    const r = rate / 12 / 100;
+    if (r > 0 && emi > 0 && amount > 0) {
+      const ratio = 1 - (amount * r) / emi;
+      if (ratio > 0) {
+        tenure = Math.ceil(-Math.log(ratio) / Math.log(1 + r));
+      }
+    }
+
+    // Auto-infer tax deductions from loan type
+    const isHome = form.loan_type === "home";
+    const isEducation = form.loan_type === "education";
+
     onSubmit({
-      ...form,
-      principal_amount: Number(form.principal_amount),
-      outstanding_principal: Number(form.outstanding_principal),
-      interest_rate: Number(form.interest_rate),
-      tenure_months: Number(form.tenure_months),
-      remaining_tenure_months: Number(form.remaining_tenure_months),
-      emi_amount: Number(form.emi_amount),
-      emi_due_date: form.emi_due_date ? Number(form.emi_due_date) : null,
+      bank_name: form.bank_name,
+      loan_type: form.loan_type,
+      principal_amount: amount,
+      outstanding_principal: amount,
+      interest_rate: rate,
+      interest_rate_type: "floating",
+      tenure_months: Math.min(Math.max(tenure, 1), 600),
+      remaining_tenure_months: Math.min(Math.max(tenure, 1), 600),
+      emi_amount: emi,
       prepayment_penalty_pct: 0,
       foreclosure_charges_pct: 0,
+      eligible_80c: isHome,
+      eligible_24b: isHome,
+      eligible_80e: isEducation,
+      eligible_80eea: false,
     });
   };
 
@@ -61,7 +71,7 @@ export function LoanForm({ onSubmit, onClose, isLoading, initialData }: Props) {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
       <div className="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between p-4 border-b border-gray-100">
-          <h2 className="text-lg font-semibold">{t("loanForm.title")}</h2>
+          <h2 className="text-lg font-semibold">{t("loanForm.quickAdd")}</h2>
           <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded-lg">
             <X className="w-5 h-5" />
           </button>
@@ -70,7 +80,7 @@ export function LoanForm({ onSubmit, onClose, isLoading, initialData }: Props) {
         <form onSubmit={handleSubmit} className="p-4 space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">{t("loanForm.selectBank")}</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t("loans.bank")}</label>
               <select
                 value={form.bank_name}
                 onChange={(e) => handleChange("bank_name", e.target.value)}
@@ -93,101 +103,47 @@ export function LoanForm({ onSubmit, onClose, isLoading, initialData }: Props) {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">{t("loanForm.originalAmount")} ({sym})</label>
-              <input type="number" value={form.principal_amount} onChange={(e) => handleChange("principal_amount", e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" required min="1" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">{t("loanForm.outstandingAmount")} ({sym})</label>
-              <input type="number" value={form.outstanding_principal} onChange={(e) => handleChange("outstanding_principal", e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" required min="0" />
-            </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t("loanForm.loanAmount")} ({sym})</label>
+            <input
+              type="number"
+              value={form.loan_amount}
+              onChange={(e) => handleChange("loan_amount", e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+              required
+              min="1"
+              placeholder="e.g. 2500000"
+            />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">{t("loanForm.interestRate")} (%)</label>
-              <input type="number" step="0.01" value={form.interest_rate} onChange={(e) => handleChange("interest_rate", e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" required min="0" max="50" />
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t("loanForm.interestRate")}</label>
+              <input
+                type="number"
+                step="0.01"
+                value={form.interest_rate}
+                onChange={(e) => handleChange("interest_rate", e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                required
+                min="0"
+                max="50"
+                placeholder="e.g. 8.5"
+              />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">{t("loanForm.rateType")}</label>
-              <select value={form.interest_rate_type} onChange={(e) => handleChange("interest_rate_type", e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
-                <option value="floating">{t("loanForm.floating")}</option>
-                <option value="fixed">{t("loanForm.fixed")}</option>
-                <option value="hybrid">{t("loanForm.hybrid")}</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">{t("loanForm.totalTenure")}</label>
-              <input type="number" value={form.tenure_months} onChange={(e) => handleChange("tenure_months", e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" required min="1" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">{t("loanForm.remainingTenure")}</label>
-              <input type="number" value={form.remaining_tenure_months} onChange={(e) => handleChange("remaining_tenure_months", e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" required min="1" />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">{t("loanForm.emiAmount")} ({sym})</label>
-              <input type="number" value={form.emi_amount} onChange={(e) => handleChange("emi_amount", e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" required min="1" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">{t("loanForm.emiDueDate")}</label>
-              <input type="number" value={form.emi_due_date} onChange={(e) => handleChange("emi_due_date", e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" min="1" max="28" placeholder={t("loanForm.dayHint")} />
+              <input
+                type="number"
+                value={form.emi_amount}
+                onChange={(e) => handleChange("emi_amount", e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                required
+                min="1"
+                placeholder="e.g. 22000"
+              />
             </div>
           </div>
-
-          {/* India Tax Deductions */}
-          {config.hasTaxSections && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">{t("loanForm.taxDeductions")}</label>
-              <div className="grid grid-cols-2 gap-2">
-                {[
-                  { key: "eligible_80c", label: t("loanForm.section80c") },
-                  { key: "eligible_24b", label: t("loanForm.section24b") },
-                  { key: "eligible_80e", label: t("loanForm.section80e") },
-                  { key: "eligible_80eea", label: t("loanForm.section80eea") },
-                ].map(({ key, label }) => (
-                  <label key={key} className="flex items-center gap-2 text-sm">
-                    <input
-                      type="checkbox"
-                      checked={(form as any)[key]}
-                      onChange={(e) => handleChange(key, e.target.checked)}
-                      className="rounded border-gray-300 text-blue-600"
-                    />
-                    {label}
-                  </label>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* US Tax Deductions */}
-          {config.hasFilingStatus && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">{t("loanForm.taxDeductions")}</label>
-              <div className="grid grid-cols-1 gap-2">
-                {[
-                  { key: "eligible_mortgage_deduction", label: t("loanForm.mortgageDeduction") },
-                  { key: "eligible_student_loan_deduction", label: t("loanForm.studentLoanDeduction") },
-                ].map(({ key, label }) => (
-                  <label key={key} className="flex items-center gap-2 text-sm">
-                    <input
-                      type="checkbox"
-                      checked={(form as any)[key]}
-                      onChange={(e) => handleChange(key, e.target.checked)}
-                      className="rounded border-gray-300 text-blue-600"
-                    />
-                    {label}
-                  </label>
-                ))}
-              </div>
-            </div>
-          )}
 
           <button
             type="submit"

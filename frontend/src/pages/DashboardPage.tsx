@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { Plus, ScanLine, Zap, TrendingDown, Brain, ChevronDown, ChevronUp, AlertTriangle, Shield, Sparkles } from "lucide-react";
+import { Plus, Zap, TrendingDown, Brain, ChevronDown, ChevronUp, AlertTriangle, Shield, Sparkles } from "lucide-react";
 import api from "../lib/api";
 import { formatMonths } from "../lib/format";
 import { CurrencyDisplay } from "../components/shared/CurrencyDisplay";
@@ -54,7 +54,7 @@ export function DashboardPage() {
       <EmptyState
         title={t("dashboard.noLoansYet")}
         description={t("dashboard.noLoansDesc")}
-        action={{ label: t("dashboard.addLoan"), onClick: () => navigate("/loans?add=true") }}
+        action={{ label: t("dashboard.addLoan"), onClick: () => navigate("/scanner") }}
       />
     );
   }
@@ -160,25 +160,18 @@ export function DashboardPage() {
       {/* Quick Actions */}
       <div className="flex flex-wrap gap-3">
         <button
-          onClick={() => navigate("/loans?add=true")}
+          onClick={() => navigate("/scanner")}
           className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700"
         >
           <Plus className="w-4 h-4" />
           {t("dashboard.addLoan")}
         </button>
         <button
-          onClick={() => navigate("/scanner")}
-          className="flex items-center gap-2 px-4 py-2 bg-white text-gray-700 rounded-lg text-sm font-medium border border-gray-300 hover:bg-gray-50"
-        >
-          <ScanLine className="w-4 h-4" />
-          {t("dashboard.scanDoc")}
-        </button>
-        <button
           onClick={() => navigate("/optimizer")}
           className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg text-sm font-medium hover:from-indigo-600 hover:to-purple-700"
         >
           <Zap className="w-4 h-4" />
-          {t("dashboard.runOptimizer")}
+          {t("dashboard.viewStrategies")}
         </button>
       </div>
 
@@ -274,25 +267,24 @@ export function DashboardPage() {
                   </div>
                 </div>
 
-                {/* AI Insight Toggle */}
+                {/* AI Insight — shown inline */}
                 {insight && (
-                  <div className="border-t border-gray-100">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setExpandedInsight(isExpanded ? null : loan.id);
-                      }}
-                      className="w-full px-4 py-2 flex items-center gap-2 text-xs text-indigo-600 hover:bg-indigo-50 transition-colors"
-                    >
-                      <Brain className="w-3.5 h-3.5" />
-                      <span className="font-medium">{t("dashboard.aiInsight")}</span>
-                      {isExpanded ? <ChevronUp className="w-3.5 h-3.5 ml-auto" /> : <ChevronDown className="w-3.5 h-3.5 ml-auto" />}
-                    </button>
-                    {isExpanded && (
-                      <div className="px-4 pb-3 text-xs text-gray-600 leading-relaxed">
-                        {insight}
-                      </div>
-                    )}
+                  <div
+                    className="border-t border-gray-100 px-4 py-2.5 cursor-pointer hover:bg-indigo-50/50 transition-colors"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setExpandedInsight(isExpanded ? null : loan.id);
+                    }}
+                  >
+                    <div className="flex items-start gap-2">
+                      <Brain className="w-3.5 h-3.5 text-indigo-500 mt-0.5 flex-shrink-0" />
+                      <p className="text-xs text-gray-600 leading-relaxed flex-1">
+                        {isExpanded ? insight : insight.length > 100 ? insight.slice(0, 100) + "..." : insight}
+                      </p>
+                      {insight.length > 100 && (
+                        isExpanded ? <ChevronUp className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" /> : <ChevronDown className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                      )}
+                    </div>
                   </div>
                 )}
               </div>

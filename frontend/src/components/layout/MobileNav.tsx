@@ -1,13 +1,11 @@
 import { NavLink } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { LayoutDashboard, Wallet, ScanLine, Zap, Calculator } from "lucide-react";
+import { LayoutDashboard, PlusCircle, Settings } from "lucide-react";
 
 const navItems = [
   { to: "/", icon: LayoutDashboard, labelKey: "nav.dashboard" },
-  { to: "/loans", icon: Wallet, labelKey: "nav.loans" },
-  { to: "/scanner", icon: ScanLine, labelKey: "nav.scanner" },
-  { to: "/optimizer", icon: Zap, labelKey: "nav.optimizer" },
-  { to: "/emi-calculator", icon: Calculator, labelKey: "nav.emiCalculator" },
+  { to: "/scanner", icon: PlusCircle, labelKey: "nav.addLoan" },
+  { to: "/settings", icon: Settings, labelKey: "nav.settings" },
 ];
 
 export function MobileNav() {

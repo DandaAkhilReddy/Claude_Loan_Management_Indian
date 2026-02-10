@@ -1,5 +1,6 @@
 """Scanner routes — document upload, OCR progress, confirmation."""
 
+import math
 from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -67,25 +68,44 @@ async def upload_document(
         # Auto-create loan from extracted fields with smart defaults
         if fields:
             principal = float(extracted.get("principal_amount", "0").replace(",", "")) or 0
-            emi = float(extracted.get("emi_amount", "0").replace(",", "")) or 0
+            rate = float(extracted.get("interest_rate", "0")) or 8.5  # India avg
             tenure = int(extracted.get("tenure_months", "0") or "0") or 240
+            emi = float(extracted.get("emi_amount", "0").replace(",", "")) or 0
+            loan_type = extracted.get("loan_type", "personal")
 
-            loan_repo = LoanRepository(db)
-            loan = await loan_repo.create(
-                user_id=user.id,
-                bank_name=extracted.get("bank_name", "Unknown Bank"),
-                loan_type=extracted.get("loan_type", "personal"),
-                principal_amount=principal,
-                outstanding_principal=principal,
-                interest_rate=float(extracted.get("interest_rate", "0")) or 0,
-                interest_rate_type="floating",
-                tenure_months=tenure,
-                remaining_tenure_months=tenure,
-                emi_amount=emi,
-                source="scan",
-                source_scan_id=job.id,
-            )
-            created_loan_id = loan.id
+            # Auto-calculate EMI if missing but principal is available
+            if principal > 0 and emi == 0:
+                r = rate / 12 / 100  # monthly rate
+                if r > 0:
+                    emi = principal * r * math.pow(1 + r, tenure) / (math.pow(1 + r, tenure) - 1)
+                else:
+                    emi = principal / tenure
+
+            # Auto-infer tax deductions from loan type
+            eligible_80c = loan_type == "home"
+            eligible_24b = loan_type == "home"
+            eligible_80e = loan_type == "education"
+
+            if principal > 0:
+                loan_repo = LoanRepository(db)
+                loan = await loan_repo.create(
+                    user_id=user.id,
+                    bank_name=extracted.get("bank_name", "Unknown Bank"),
+                    loan_type=loan_type,
+                    principal_amount=principal,
+                    outstanding_principal=principal,
+                    interest_rate=rate,
+                    interest_rate_type="floating",
+                    tenure_months=tenure,
+                    remaining_tenure_months=tenure,
+                    emi_amount=round(emi, 2),
+                    eligible_80c=eligible_80c,
+                    eligible_24b=eligible_24b,
+                    eligible_80e=eligible_80e,
+                    source="scan",
+                    source_scan_id=job.id,
+                )
+                created_loan_id = loan.id
 
         await repo.update_status(
             job.id,

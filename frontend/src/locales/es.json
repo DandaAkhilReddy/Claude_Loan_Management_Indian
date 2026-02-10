@@ -10,6 +10,7 @@
     "scanner": "Escanear Documento",
     "optimizer": "Optimizador",
     "emiCalculator": "Calculadora de Cuotas",
+    "addLoan": "Agregar Préstamo",
     "settings": "Configuración",
     "login": "Iniciar Sesión",
     "logout": "Cerrar Sesión"
@@ -98,6 +99,8 @@
     "section80eea": "Sección 80EEA (Primer Comprador)",
     "mortgageDeduction": "Deducción de Interés Hipotecario",
     "studentLoanDeduction": "Deducción de Interés Estudiantil",
+    "loanAmount": "Monto del Préstamo",
+    "quickAdd": "Agregar Préstamo Rápido",
     "saving": "Guardando...",
     "saveLoan": "Guardar Préstamo"
   },
@@ -177,6 +180,10 @@
     "statusReviewNeeded": "Revisión Necesaria",
     "statusFailed": "Fallido",
     "loanCreated": "¡Préstamo creado desde tu documento!",
+    "scanFailed": "No se pudo leer tu documento",
+    "scanFailedDesc": "Intenta con una foto más clara, o ingresa los datos manualmente",
+    "tryAgain": "Intentar de Nuevo",
+    "orEnterManually": "O ingresa los datos manualmente",
     "scanning": "AI está leyendo tu documento...",
     "scanningDesc": "Extrayendo detalles del préstamo automáticamente"
   },

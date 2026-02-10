@@ -11,6 +11,7 @@
     "optimizer": "Optimizer",
     "emiCalculator": "EMI Calculator",
     "settings": "Settings",
+    "addLoan": "Add Loan",
     "login": "Login",
     "logout": "Logout"
   },
@@ -99,7 +100,9 @@
     "mortgageDeduction": "Mortgage Interest Deduction",
     "studentLoanDeduction": "Student Loan Interest Deduction",
     "saving": "Saving...",
-    "saveLoan": "Save Loan"
+    "saveLoan": "Save Loan",
+    "loanAmount": "Loan Amount",
+    "quickAdd": "Quick Add Loan"
   },
   "optimizer": {
     "title": "Smart Repayment Optimizer",
@@ -178,7 +181,11 @@
     "statusFailed": "Failed",
     "loanCreated": "Loan created from your document!",
     "scanning": "AI is reading your document...",
-    "scanningDesc": "Extracting loan details automatically"
+    "scanningDesc": "Extracting loan details automatically",
+    "scanFailed": "Couldn't read your document",
+    "scanFailedDesc": "Try a clearer photo, or enter details manually",
+    "tryAgain": "Try Again",
+    "orEnterManually": "Or enter details manually"
   },
   "auth": {
     "signIn": "Sign In",
