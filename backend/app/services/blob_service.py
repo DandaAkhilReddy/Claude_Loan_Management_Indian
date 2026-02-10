@@ -1,5 +1,6 @@
 """Azure Blob Storage service — upload, SAS URL, delete."""
 
+import asyncio
 import uuid
 import logging
 from datetime import datetime, timedelta, timezone
@@ -46,12 +47,14 @@ class BlobService:
 
         # Ensure container exists
         try:
-            await container_client.create_container()
+            await asyncio.to_thread(container_client.create_container)
         except Exception:
             pass  # Already exists
 
         blob_client = container_client.get_blob_client(blob_name)
-        blob_client.upload_blob(content, content_type=content_type, overwrite=True)
+        await asyncio.to_thread(
+            blob_client.upload_blob, content, content_type=content_type, overwrite=True
+        )
 
         return blob_client.url
 
@@ -90,7 +93,7 @@ class BlobService:
                 return False
             blob_name = parts[1]
             container_client = self.client.get_container_client(self.container_name)
-            container_client.delete_blob(blob_name)
+            await asyncio.to_thread(container_client.delete_blob, blob_name)
             return True
         except Exception as e:
             logger.error(f"Blob deletion error: {e}")

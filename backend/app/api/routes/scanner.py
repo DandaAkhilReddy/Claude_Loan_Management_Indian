@@ -57,6 +57,7 @@ async def upload_document(
 
     # Trigger OCR and auto-create loan
     created_loan_id = None
+    scan_error = None
     try:
         await repo.update_status(job.id, user.id, "processing")
         scanner = ScannerService()
@@ -116,11 +117,13 @@ async def upload_document(
             created_loan_id=created_loan_id,
         )
     except Exception as e:
-        await repo.update_status(job.id, user.id, "failed", error_message=str(e))
+        scan_error = str(e)
+        await repo.update_status(job.id, user.id, "failed", error_message=scan_error)
 
     return UploadResponse(
         job_id=job.id,
         loan_id=str(created_loan_id) if created_loan_id else None,
+        error=scan_error,
     )
 
 

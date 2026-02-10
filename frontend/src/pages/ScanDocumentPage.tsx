@@ -16,6 +16,7 @@ export function ScanDocumentPage() {
   const config = useCountryConfig();
   const [showManualForm, setShowManualForm] = useState(false);
   const [scanFailed, setScanFailed] = useState(false);
+  const [scanError, setScanError] = useState<string | null>(null);
 
   // Manual form state — 5 fields only
   const [form, setForm] = useState({
@@ -41,10 +42,13 @@ export function ScanDocumentPage() {
         queryClient.invalidateQueries({ queryKey: ["loans"] });
         navigate("/");
       } else {
+        setScanError(data.error || null);
         setScanFailed(true);
       }
     },
-    onError: () => {
+    onError: (err: unknown) => {
+      const msg = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
+      setScanError(msg || null);
       setScanFailed(true);
     },
   });
@@ -61,6 +65,7 @@ export function ScanDocumentPage() {
   const onDrop = useCallback((files: File[]) => {
     if (files[0]) {
       setScanFailed(false);
+      setScanError(null);
       uploadMutation.mutate(files[0]);
     }
   }, []);
@@ -160,6 +165,9 @@ export function ScanDocumentPage() {
           </div>
           <p className="text-lg font-medium text-gray-900">{t("scanner.scanFailed")}</p>
           <p className="text-sm text-gray-500 mt-1">{t("scanner.scanFailedDesc")}</p>
+          {scanError && (
+            <p className="text-xs text-gray-400 mt-2 font-mono">{scanError}</p>
+          )}
           <div className="flex gap-3 justify-center mt-5">
             <button
               onClick={() => setScanFailed(false)}

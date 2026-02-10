@@ -10,6 +10,7 @@ class UploadResponse(BaseModel):
     loan_id: str | None = None
     status: str = "uploaded"
     message: str = "Document uploaded. Processing will begin shortly."
+    error: str | None = None
 
 
 class ExtractedField(BaseModel):
