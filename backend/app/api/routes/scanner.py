@@ -64,20 +64,33 @@ async def upload_document(
     try:
         await repo.update_status(job.id, user.id, "processing")
         scanner = ScannerService()
+        fields = []
 
-        # Primary: GPT-4o Vision extraction (works with any document)
+        # Strategy 1: GPT-4o Vision (images) / GPT-4o text analysis (PDFs)
         try:
             fields = await scanner.analyze_with_ai(content, file.content_type)
-        except Exception as ai_err:
-            logger.warning(f"AI extraction failed, falling back to regex: {ai_err}")
-            fields = []
+        except Exception as e:
+            logger.warning(f"Strategy 1 (AI vision) failed: {e}")
 
-        # Fallback: Azure Doc Intel + regex patterns
+        # Strategy 2: Azure Doc Intel OCR → GPT-4o text analysis (fallback for images)
+        if not fields and scanner.ai_client:
+            try:
+                ocr_text = await scanner._extract_text(content, file.content_type)
+                if ocr_text.strip():
+                    fields = await scanner.analyze_text_with_ai(ocr_text)
+            except Exception as e:
+                logger.warning(f"Strategy 2 (AI text) failed: {e}")
+
+        # Strategy 3: Azure Doc Intel → regex patterns (final fallback)
         if not fields:
             try:
                 fields = await scanner.analyze_from_bytes(content, file.content_type)
-            except Exception:
-                fields = []
+            except Exception as e:
+                logger.warning(f"Strategy 3 (regex) failed: {e}")
+
+        # Propagate meaningful error if all strategies failed
+        if not fields:
+            scan_error = "Could not extract loan details. Try a clearer photo or enter details manually."
 
         extracted = {f.field_name: f.value for f in fields}
         confidences = {f.field_name: f.confidence for f in fields}

@@ -246,13 +246,17 @@ class ScannerService:
                 {"role": "user", "content": f"{EXTRACTION_USER_PROMPT}\n\nDocument text:\n{text[:4000]}"},
             ]
 
-        response = await self.ai_client.chat.completions.create(
-            model=settings.azure_openai_deployment,
-            messages=messages,
-            temperature=0.1,
-            max_tokens=500,
-            response_format={"type": "json_object"},
-        )
+        # response_format is NOT supported with vision (image_url) inputs on Azure OpenAI
+        kwargs = {
+            "model": settings.azure_openai_deployment,
+            "messages": messages,
+            "temperature": 0.1,
+            "max_tokens": 500,
+        }
+        if content_type not in ("image/png", "image/jpeg", "image/jpg"):
+            kwargs["response_format"] = {"type": "json_object"}
+
+        response = await self.ai_client.chat.completions.create(**kwargs)
 
         raw = response.choices[0].message.content or "{}"
         fields = self._parse_ai_response(raw)
@@ -261,34 +265,79 @@ class ScannerService:
         logger.info(f"AI extraction completed in {elapsed_ms}ms, extracted {len(fields)} fields")
         return fields
 
-    def _parse_ai_response(self, raw_json: str) -> list[ExtractedField]:
-        """Parse GPT-4o JSON response into ExtractedField list."""
+    def _parse_ai_response(self, raw: str) -> list[ExtractedField]:
+        """Parse GPT-4o response into ExtractedField list.
+
+        Robust: tries direct JSON parse → code block extraction → brace extraction.
+        """
+        data = None
+
+        # 1. Direct JSON parse
         try:
-            data = json.loads(raw_json)
-        except json.JSONDecodeError:
-            logger.error(f"Failed to parse AI response: {raw_json[:200]}")
+            data = json.loads(raw)
+        except (json.JSONDecodeError, TypeError):
+            pass
+
+        # 2. Extract from ```json ... ``` code block
+        if data is None:
+            m = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", raw, re.DOTALL)
+            if m:
+                try:
+                    data = json.loads(m.group(1))
+                except json.JSONDecodeError:
+                    pass
+
+        # 3. Find first { ... } in the response
+        if data is None:
+            m = re.search(r"\{[^{}]*\}", raw, re.DOTALL)
+            if m:
+                try:
+                    data = json.loads(m.group(0))
+                except json.JSONDecodeError:
+                    pass
+
+        if not data or not isinstance(data, dict):
+            logger.error(f"Failed to parse AI response: {raw[:300]}")
             return []
 
-        field_map = {
-            "bank_name": "bank_name",
-            "loan_type": "loan_type",
-            "principal_amount": "principal_amount",
-            "interest_rate": "interest_rate",
-            "emi_amount": "emi_amount",
-            "tenure_months": "tenure_months",
-            "account_number": "account_number",
-        }
+        field_keys = [
+            "bank_name", "loan_type", "principal_amount",
+            "interest_rate", "emi_amount", "tenure_months", "account_number",
+        ]
 
         fields = []
-        for json_key, field_name in field_map.items():
-            value = str(data.get(json_key, "")).strip()
+        for key in field_keys:
+            value = str(data.get(key, "")).strip()
             if value:
-                # Clean amounts: remove currency symbols, commas
-                if field_name in ("principal_amount", "emi_amount"):
+                if key in ("principal_amount", "emi_amount"):
                     value = re.sub(r"[₹$,\s]", "", value)
-                if field_name == "interest_rate":
+                if key == "interest_rate":
                     value = value.replace("%", "").strip()
-                fields.append(ExtractedField(field_name, value, 0.90))
+                fields.append(ExtractedField(key, value, 0.90))
+        return fields
+
+    async def analyze_text_with_ai(self, text: str) -> list[ExtractedField]:
+        """Send OCR-extracted text to GPT-4o for structured extraction (no vision)."""
+        if not self.ai_client:
+            raise RuntimeError("Azure OpenAI not configured")
+
+        start_time = time.time()
+        messages = [
+            {"role": "system", "content": EXTRACTION_SYSTEM_PROMPT},
+            {"role": "user", "content": f"{EXTRACTION_USER_PROMPT}\n\nDocument text:\n{text[:4000]}"},
+        ]
+        response = await self.ai_client.chat.completions.create(
+            model=settings.azure_openai_deployment,
+            messages=messages,
+            temperature=0.1,
+            max_tokens=500,
+            response_format={"type": "json_object"},
+        )
+        raw = response.choices[0].message.content or "{}"
+        fields = self._parse_ai_response(raw)
+
+        elapsed_ms = int((time.time() - start_time) * 1000)
+        logger.info(f"AI text extraction completed in {elapsed_ms}ms, extracted {len(fields)} fields")
         return fields
 
     async def _extract_text(self, content: bytes, content_type: str) -> str:
