@@ -1,7 +1,7 @@
 """SQLAlchemy async models with pgvector support.
 
 Tables: users, loans, scan_jobs, repayment_plans, document_embeddings,
-        consent_records, audit_logs
+        consent_records, audit_logs, reviews, api_usage_logs
 """
 
 import uuid
@@ -41,6 +41,7 @@ class User(Base):
     repayment_plans: Mapped[list["RepaymentPlan"]] = relationship(back_populates="user", cascade="all, delete-orphan")
     consent_records: Mapped[list["ConsentRecord"]] = relationship(back_populates="user", cascade="all, delete-orphan")
     audit_logs: Mapped[list["AuditLog"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    reviews: Mapped[list["Review"]] = relationship(back_populates="user", cascade="all, delete-orphan")
 
 
 class Loan(Base):
@@ -157,3 +158,43 @@ class AuditLog(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     user: Mapped["User | None"] = relationship(back_populates="audit_logs")
+
+
+class Review(Base):
+    __tablename__ = "reviews"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    review_type: Mapped[str] = mapped_column(String(20), nullable=False)  # feedback / testimonial / feature_request
+    rating: Mapped[int | None] = mapped_column(Integer, nullable=True)  # 1-5, null for feature_requests
+    title: Mapped[str] = mapped_column(String(200), nullable=False)
+    content: Mapped[str] = mapped_column(Text, nullable=False)
+    status: Mapped[str] = mapped_column(String(20), default="pending")  # pending/approved/rejected (testimonials) or new/acknowledged/planned/done (features)
+    admin_response: Mapped[str | None] = mapped_column(Text, nullable=True)
+    is_public: Mapped[bool] = mapped_column(Boolean, default=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    user: Mapped["User"] = relationship(back_populates="reviews")
+
+    __table_args__ = (
+        Index("ix_reviews_type_status", "review_type", "status"),
+    )
+
+
+class ApiUsageLog(Base):
+    __tablename__ = "api_usage_logs"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True)
+    service: Mapped[str] = mapped_column(String(30), nullable=False)  # openai / doc_intel / blob_storage / translator / tts
+    operation: Mapped[str] = mapped_column(String(50), nullable=False)  # chat / vision / embedding / ocr / upload / translate / tts
+    tokens_input: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    tokens_output: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    estimated_cost: Mapped[float] = mapped_column(Numeric(10, 6), default=0)
+    metadata_json: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    __table_args__ = (
+        Index("ix_usage_service_created", "service", "created_at"),
+    )

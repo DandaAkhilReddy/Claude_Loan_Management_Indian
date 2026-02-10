@@ -120,3 +120,37 @@ export interface TaxImpact {
   explanation: string;
   deductions: Record<string, number>;
 }
+
+export interface Review {
+  id: string;
+  user_id: string;
+  user_display_name: string | null;
+  review_type: "feedback" | "testimonial" | "feature_request";
+  rating: number | null;
+  title: string;
+  content: string;
+  status: string;
+  admin_response: string | null;
+  is_public: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AdminStats {
+  user_count: number;
+  new_users_7d: number;
+  new_users_30d: number;
+  total_loans: number;
+  loans_by_type: Record<string, number>;
+  total_scans: number;
+  scans_today: number;
+  scan_success_rate: number;
+  total_reviews: number;
+}
+
+export interface UsageSummary {
+  total_cost_30d: number;
+  total_calls_30d: number;
+  by_service: Record<string, { call_count: number; total_cost: number; tokens_input: number; tokens_output: number }>;
+  daily_costs: { date: string; service: string; call_count: number; total_cost: number }[];
+}

@@ -15,6 +15,8 @@ const ScanDocumentPage = lazy(() => import("./pages/ScanDocumentPage").then((m) 
 const OptimizerPage = lazy(() => import("./pages/OptimizerPage").then((m) => ({ default: m.OptimizerPage })));
 const EMICalculatorPage = lazy(() => import("./pages/EMICalculatorPage").then((m) => ({ default: m.EMICalculatorPage })));
 const SettingsPage = lazy(() => import("./pages/SettingsPage").then((m) => ({ default: m.SettingsPage })));
+const FeedbackPage = lazy(() => import("./pages/FeedbackPage").then((m) => ({ default: m.FeedbackPage })));
+const AdminDashboardPage = lazy(() => import("./pages/AdminDashboardPage").then((m) => ({ default: m.AdminDashboardPage })));
 
 function PageLoader() {
   return <LoadingSpinner size="lg" />;
@@ -39,6 +41,8 @@ export default function App() {
             <Route path="/scanner" element={<ScanDocumentPage />} />
             <Route path="/optimizer" element={<OptimizerPage />} />
             <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/feedback" element={<FeedbackPage />} />
+            <Route path="/admin" element={<AdminDashboardPage />} />
           </Route>
         </Routes>
       </Suspense>

@@ -15,11 +15,12 @@ class TestExplainLoan:
         mock_repo.get_by_id = AsyncMock(return_value=mock_loan)
 
         mock_ai = MagicMock()
-        mock_ai.explain_loan = AsyncMock(return_value="This is a home loan explanation.")
+        mock_ai.explain_loan = AsyncMock(return_value=("This is a home loan explanation.", {"prompt_tokens": 100, "completion_tokens": 50, "total_tokens": 150}))
 
         with (
             patch("app.api.routes.ai_insights.LoanRepository", return_value=mock_repo),
             patch("app.api.routes.ai_insights.AIService", return_value=mock_ai),
+            patch("app.api.routes.ai_insights.track_usage", new_callable=AsyncMock),
         ):
             resp = await async_client.post("/api/ai/explain-loan", json={
                 "loan_id": str(mock_loan.id),
@@ -48,7 +49,7 @@ class TestExplainLoan:
         mock_repo.get_by_id = AsyncMock(return_value=mock_loan)
 
         mock_ai = MagicMock()
-        mock_ai.explain_loan = AsyncMock(return_value="English explanation")
+        mock_ai.explain_loan = AsyncMock(return_value=("English explanation", {"prompt_tokens": 100, "completion_tokens": 50, "total_tokens": 150}))
 
         mock_translator = MagicMock()
         mock_translator.translate = AsyncMock(return_value="Hindi explanation")
@@ -57,6 +58,7 @@ class TestExplainLoan:
             patch("app.api.routes.ai_insights.LoanRepository", return_value=mock_repo),
             patch("app.api.routes.ai_insights.AIService", return_value=mock_ai),
             patch("app.api.routes.ai_insights.TranslatorService", return_value=mock_translator),
+            patch("app.api.routes.ai_insights.track_usage", new_callable=AsyncMock),
         ):
             resp = await async_client.post("/api/ai/explain-loan", json={
                 "loan_id": str(mock_loan.id),
@@ -80,9 +82,12 @@ class TestExplainLoan:
 class TestExplainStrategy:
     async def test_explain_strategy_success(self, async_client):
         mock_ai = MagicMock()
-        mock_ai.explain_strategy = AsyncMock(return_value="Avalanche pays least interest.")
+        mock_ai.explain_strategy = AsyncMock(return_value=("Avalanche pays least interest.", {"prompt_tokens": 80, "completion_tokens": 40, "total_tokens": 120}))
 
-        with patch("app.api.routes.ai_insights.AIService", return_value=mock_ai):
+        with (
+            patch("app.api.routes.ai_insights.AIService", return_value=mock_ai),
+            patch("app.api.routes.ai_insights.track_usage", new_callable=AsyncMock),
+        ):
             resp = await async_client.post("/api/ai/explain-strategy", json={
                 "strategy_name": "avalanche",
                 "num_loans": 3,
@@ -113,12 +118,13 @@ class TestAsk:
         mock_embed_repo.similarity_search = AsyncMock(return_value=[mock_result])
 
         mock_ai = MagicMock()
-        mock_ai.ask_with_context = AsyncMock(return_value="No penalty for floating rate prepayment.")
+        mock_ai.ask_with_context = AsyncMock(return_value=("No penalty for floating rate prepayment.", {"prompt_tokens": 200, "completion_tokens": 60, "total_tokens": 260}))
 
         with (
             patch("app.api.routes.ai_insights.EmbeddingService", return_value=mock_embed_svc),
             patch("app.api.routes.ai_insights.EmbeddingRepository", return_value=mock_embed_repo),
             patch("app.api.routes.ai_insights.AIService", return_value=mock_ai),
+            patch("app.api.routes.ai_insights.track_usage", new_callable=AsyncMock),
         ):
             resp = await async_client.post("/api/ai/ask", json={
                 "question": "What is RBI rule on prepayment?",

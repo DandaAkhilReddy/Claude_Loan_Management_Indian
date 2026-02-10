@@ -53,7 +53,7 @@ class TestAIServiceNotConfigured:
 
     @pytest.mark.asyncio
     async def test_explain_loan_not_configured(self, unconfigured_ai_service):
-        result = await unconfigured_ai_service.explain_loan(
+        text, usage = await unconfigured_ai_service.explain_loan(
             bank_name="SBI",
             loan_type="home",
             principal=5000000,
@@ -63,11 +63,12 @@ class TestAIServiceNotConfigured:
             emi=43391,
             remaining_months=220,
         )
-        assert "not configured" in result.lower()
+        assert "not configured" in text.lower()
+        assert usage == {}
 
     @pytest.mark.asyncio
     async def test_explain_strategy_not_configured(self, unconfigured_ai_service):
-        result = await unconfigured_ai_service.explain_strategy(
+        text, usage = await unconfigured_ai_service.explain_strategy(
             strategy_name="Avalanche",
             num_loans=3,
             extra=10000,
@@ -75,15 +76,17 @@ class TestAIServiceNotConfigured:
             months_saved=18,
             payoff_order=["HDFC Personal", "ICICI Car", "SBI Home"],
         )
-        assert "not configured" in result.lower()
+        assert "not configured" in text.lower()
+        assert usage == {}
 
     @pytest.mark.asyncio
     async def test_ask_with_context_not_configured(self, unconfigured_ai_service):
-        result = await unconfigured_ai_service.ask_with_context(
+        text, usage = await unconfigured_ai_service.ask_with_context(
             question="What is the RBI rule on prepayment?",
             context_chunks=["Some context"],
         )
-        assert "not configured" in result.lower()
+        assert "not configured" in text.lower()
+        assert usage == {}
 
 
 # ---------------------------------------------------------------------------
@@ -101,7 +104,7 @@ class TestAIServiceErrorHandling:
             side_effect=Exception("API rate limit exceeded")
         )
 
-        result = await configured_ai_service.explain_loan(
+        text, usage = await configured_ai_service.explain_loan(
             bank_name="SBI",
             loan_type="home",
             principal=5000000,
@@ -111,21 +114,27 @@ class TestAIServiceErrorHandling:
             emi=43391,
             remaining_months=220,
         )
-        assert "couldn't generate" in result.lower() or "error" in result.lower()
+        assert "couldn't generate" in text.lower() or "error" in text.lower()
+        assert usage == {}
 
     @pytest.mark.asyncio
     async def test_chat_success(self, configured_ai_service):
-        """A successful chat completion returns the model content."""
+        """A successful chat completion returns the model content and usage."""
         mock_choice = MagicMock()
         mock_choice.message.content = "Your SBI home loan explanation..."
+        mock_usage = MagicMock()
+        mock_usage.prompt_tokens = 100
+        mock_usage.completion_tokens = 50
+        mock_usage.total_tokens = 150
         mock_response = MagicMock()
         mock_response.choices = [mock_choice]
+        mock_response.usage = mock_usage
 
         configured_ai_service.client.chat.completions.create = AsyncMock(
             return_value=mock_response
         )
 
-        result = await configured_ai_service.explain_loan(
+        text, usage = await configured_ai_service.explain_loan(
             bank_name="SBI",
             loan_type="home",
             principal=5000000,
@@ -135,21 +144,28 @@ class TestAIServiceErrorHandling:
             emi=43391,
             remaining_months=220,
         )
-        assert result == "Your SBI home loan explanation..."
+        assert text == "Your SBI home loan explanation..."
+        assert usage["prompt_tokens"] == 100
+        assert usage["completion_tokens"] == 50
 
     @pytest.mark.asyncio
     async def test_chat_empty_content(self, configured_ai_service):
         """If the model returns None content, result should be empty string."""
         mock_choice = MagicMock()
         mock_choice.message.content = None
+        mock_usage = MagicMock()
+        mock_usage.prompt_tokens = 10
+        mock_usage.completion_tokens = 0
+        mock_usage.total_tokens = 10
         mock_response = MagicMock()
         mock_response.choices = [mock_choice]
+        mock_response.usage = mock_usage
 
         configured_ai_service.client.chat.completions.create = AsyncMock(
             return_value=mock_response
         )
 
-        result = await configured_ai_service.explain_loan(
+        text, usage = await configured_ai_service.explain_loan(
             bank_name="SBI",
             loan_type="home",
             principal=5000000,
@@ -159,4 +175,5 @@ class TestAIServiceErrorHandling:
             emi=43391,
             remaining_months=220,
         )
-        assert result == ""
+        assert text == ""
+        assert usage["total_tokens"] == 10

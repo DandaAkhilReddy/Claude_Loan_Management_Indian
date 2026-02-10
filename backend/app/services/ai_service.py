@@ -130,10 +130,10 @@ class AIService:
             self.client = None
             logger.warning("Azure OpenAI not configured")
 
-    async def _chat(self, system_prompt: str, user_prompt: str) -> str:
-        """Send a chat completion request."""
+    async def _chat(self, system_prompt: str, user_prompt: str) -> tuple[str, dict]:
+        """Send a chat completion request. Returns (text, usage_dict)."""
         if not self.client:
-            return "AI service not configured. Please set Azure OpenAI credentials."
+            return "AI service not configured. Please set Azure OpenAI credentials.", {}
 
         try:
             response = await self.client.chat.completions.create(
@@ -145,10 +145,17 @@ class AIService:
                 temperature=0.7,
                 max_tokens=500,
             )
-            return response.choices[0].message.content or ""
+            usage = {}
+            if response.usage:
+                usage = {
+                    "prompt_tokens": response.usage.prompt_tokens,
+                    "completion_tokens": response.usage.completion_tokens,
+                    "total_tokens": response.usage.total_tokens,
+                }
+            return response.choices[0].message.content or "", usage
         except Exception as e:
             logger.error(f"Azure OpenAI error: {e}")
-            return f"Sorry, I couldn't generate an explanation right now. Error: {str(e)}"
+            return f"Sorry, I couldn't generate an explanation right now. Error: {str(e)}", {}
 
     async def explain_loan(
         self,
@@ -161,8 +168,8 @@ class AIService:
         emi: float,
         remaining_months: int,
         country: str = "IN",
-    ) -> str:
-        """Generate plain-language loan explanation."""
+    ) -> tuple[str, dict]:
+        """Generate plain-language loan explanation. Returns (text, usage)."""
         system, loan_tmpl, _, _ = _get_prompts(country)
         prompt = loan_tmpl.format(
             bank_name=bank_name,
@@ -185,8 +192,8 @@ class AIService:
         months_saved: int,
         payoff_order: list[str],
         country: str = "IN",
-    ) -> str:
-        """Generate strategy explanation."""
+    ) -> tuple[str, dict]:
+        """Generate strategy explanation. Returns (text, usage)."""
         system, _, strategy_tmpl, _ = _get_prompts(country)
         prompt = strategy_tmpl.format(
             strategy_name=strategy_name,
@@ -198,8 +205,8 @@ class AIService:
         )
         return await self._chat(system, prompt)
 
-    async def ask_with_context(self, question: str, context_chunks: list[str], country: str = "IN") -> str:
-        """RAG-powered Q&A using retrieved context."""
+    async def ask_with_context(self, question: str, context_chunks: list[str], country: str = "IN") -> tuple[str, dict]:
+        """RAG-powered Q&A using retrieved context. Returns (text, usage)."""
         system, _, _, rag_tmpl = _get_prompts(country)
         context = "\n\n---\n\n".join(context_chunks) if context_chunks else "No relevant context found."
         prompt = rag_tmpl.format(context=context, question=question)
@@ -211,10 +218,10 @@ class AIService:
         history: list[tuple[str, str]],
         context_chunks: list[str],
         country: str = "IN",
-    ) -> str:
-        """Chat with conversation history and RAG context."""
+    ) -> tuple[str, dict]:
+        """Chat with conversation history and RAG context. Returns (text, usage)."""
         if not self.client:
-            return "AI service not configured. Please set Azure OpenAI credentials."
+            return "AI service not configured. Please set Azure OpenAI credentials.", {}
 
         system, _, _, _ = _get_prompts(country)
         context = "\n\n---\n\n".join(context_chunks) if context_chunks else "No specific context available."
@@ -236,7 +243,14 @@ You also have access to this knowledge base context (use it when relevant):
                 temperature=0.7,
                 max_tokens=500,
             )
-            return response.choices[0].message.content or ""
+            usage = {}
+            if response.usage:
+                usage = {
+                    "prompt_tokens": response.usage.prompt_tokens,
+                    "completion_tokens": response.usage.completion_tokens,
+                    "total_tokens": response.usage.total_tokens,
+                }
+            return response.choices[0].message.content or "", usage
         except Exception as e:
             logger.error(f"Chat error: {e}")
-            return f"Sorry, I couldn't process your message. Error: {str(e)}"
+            return f"Sorry, I couldn't process your message. Error: {str(e)}", {}

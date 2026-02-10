@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy import text
 
-from app.api.routes import auth, loans, optimizer, scanner, emi, ai_insights, user
+from app.api.routes import auth, loans, optimizer, scanner, emi, ai_insights, user, admin, reviews
 from app.api.middleware import RequestLoggingMiddleware, RateLimitMiddleware, GlobalErrorHandler
 from app.config import settings
 
@@ -63,6 +63,8 @@ app.include_router(scanner.router)
 app.include_router(emi.router)
 app.include_router(ai_insights.router)
 app.include_router(user.router)
+app.include_router(admin.router)
+app.include_router(reviews.router)
 
 
 @app.get("/api/health")

@@ -55,10 +55,30 @@ RAG-powered Q&A about loans, RBI rules & tax benefits
 <tr>
 <td align="center">
 
+**Admin Dashboard**
+
+Usage metrics, API cost tracking, user & review management
+</td>
+<td align="center">
+
+**Feedback & Reviews**
+
+Star ratings, testimonials, feature requests with admin moderation
+</td>
+<td align="center">
+
+**API Usage Tracking**
+
+Per-call cost estimation for OpenAI, Doc Intel, Blob, TTS
+</td>
+<td align="center">
+
 **Trilingual**
 
 English, Hindi, Telugu — UI + AI output + TTS
 </td>
+</tr>
+<tr>
 <td align="center">
 
 **Firebase Auth**
@@ -76,6 +96,12 @@ Old vs New regime comparison with 80C, 24(b), 80E, 80EEA
 **Indian Formatting**
 
 INR display as 1,00,000 — not 100,000
+</td>
+<td align="center">
+
+**DPDP Compliant**
+
+Consent records, data export, right to erasure, audit logs
 </td>
 </tr>
 </table>
@@ -121,19 +147,23 @@ Result: Pay personal loan first (12% effective), even though
 │  │Dashboard │ │ Optimizer │ │Scanner │ │ EMI Calculator │  │
 │  │          │ │  Wizard   │ │  OCR   │ │   (public)     │  │
 │  └──────────┘ └───────────┘ └────────┘ └────────────────┘  │
-│  ┌──────────┐ ┌───────────┐ ┌────────────────────────────┐  │
-│  │  Loans   │ │ Settings  │ │  i18n: EN / HI / TE       │  │
-│  └──────────┘ └───────────┘ └────────────────────────────┘  │
+│  ┌──────────┐ ┌───────────┐ ┌──────────┐ ┌─────────────┐  │
+│  │  Loans   │ │ Settings  │ │ Feedback │ │Admin Dashboard│  │
+│  └──────────┘ └───────────┘ └──────────┘ └─────────────┘  │
+│  ┌────────────────────────────────────────────────────────┐  │
+│  │              i18n: EN / HI / TE                        │  │
+│  └────────────────────────────────────────────────────────┘  │
 └────────────────────────┬────────────────────────────────────┘
                          │ HTTPS + Firebase Auth Token
 ┌────────────────────────▼────────────────────────────────────┐
 │              Python FastAPI (async) — App Service B1         │
 │                                                              │
 │  ┌─── API Layer ──────────────────────────────────────────┐  │
-│  │ /auth  /loans  /optimizer  /scanner  /emi  /ai         │  │
+│  │ /auth /loans /optimizer /scanner /emi /ai /admin /reviews│  │
 │  └────────────────────────┬───────────────────────────────┘  │
 │  ┌─── Service Layer ──────▼───────────────────────────────┐  │
 │  │ AuthSvc · ScannerSvc · AISvc · TranslatorSvc · TTSSvc  │  │
+│  │ UsageTracker (cost estimation + logging)                │  │
 │  └────────────────────────┬───────────────────────────────┘  │
 │  ┌─── Core Engine ────────▼───────────────────────────────┐  │
 │  │ FinancialMath · Strategies · Optimizer · IndianRules    │  │
@@ -152,6 +182,8 @@ Result: Pay personal loan first (12% effective), even though
 │              │ │ • doc_embeddings │ │   Neerja / Swara /    │
 │              │ │ • consent_records│ │   Shruti              │
 │              │ │ • audit_logs     │ │                       │
+│              │ │ • reviews        │ │                       │
+│              │ │ • api_usage_logs │ │                       │
 └──────────────┘ └──────────────────┘ └───────────────────────┘
 ```
 
@@ -199,7 +231,7 @@ Result: Pay personal loan first (12% effective), even though
 
 ## Database Schema
 
-7 tables on **PostgreSQL 16 + pgvector** for unified relational + vector storage:
+9 tables on **PostgreSQL 16 + pgvector** for unified relational + vector storage:
 
 ```
 ┌──────────────────┐       ┌──────────────────┐
@@ -251,6 +283,22 @@ Result: Pay personal loan first (12% effective), even though
 │ confidence_scores│
 │   (JSONB)        │
 │ created_loan_id  │
+└──────────────────┘
+
+┌──────────────────┐       ┌──────────────────────┐
+│     reviews      │       │   api_usage_logs     │
+│──────────────────│       │──────────────────────│
+│ id (PK, UUID)    │       │ id (PK, UUID)        │
+│ user_id (FK)     │       │ user_id (FK, nullable)│
+│ review_type      │       │ service              │
+│ rating (1-5)     │       │ operation            │
+│ title            │       │ tokens_input         │
+│ content          │       │ tokens_output        │
+│ status           │       │ estimated_cost       │
+│ admin_response   │       │   (Numeric 10,6)     │
+│ is_public        │       │ metadata_json (JSONB)│
+│ created_at       │       │ created_at           │
+│ updated_at       │       └──────────────────────┘
 └──────────────────┘
 ```
 
@@ -312,6 +360,27 @@ Result: Pay personal loan first (12% effective), even though
 | `POST` | `/api/ai/explain-strategy` | Required | Strategy recommendation explanation |
 | `POST` | `/api/ai/ask` | Required | RAG-powered Q&A (loans, RBI rules, tax) |
 | `POST` | `/api/ai/tts` | Required | Text-to-Speech (EN/HI/TE voices) |
+
+### Reviews & Feedback
+
+| Method | Endpoint | Auth | Description |
+|:-------|:---------|:-----|:------------|
+| `POST` | `/api/reviews` | Required | Submit feedback, testimonial, or feature request |
+| `GET` | `/api/reviews/mine` | Required | List current user's submissions |
+| `GET` | `/api/reviews/public` | - | Approved public testimonials |
+
+### Admin Dashboard
+
+| Method | Endpoint | Auth | Description |
+|:-------|:---------|:-----|:------------|
+| `GET` | `/api/admin/stats` | Admin | Dashboard metrics (users, loans, scans, reviews) |
+| `GET` | `/api/admin/users` | Admin | User list with loan counts |
+| `GET` | `/api/admin/usage` | Admin | API usage summary + cost estimates (30-day) |
+| `GET` | `/api/admin/reviews` | Admin | All reviews (filterable by type/status) |
+| `PUT` | `/api/admin/reviews/{id}` | Admin | Update review status / admin response |
+| `DELETE` | `/api/admin/reviews/{id}` | Admin | Delete a review |
+
+> **Admin access** is restricted to hardcoded emails (`areddy@hhamedicine.com`, `admin@test.com`).
 
 ---
 
@@ -396,8 +465,8 @@ Indian_Loan_Analyzer_Claude/
 ├── backend/
 │   ├── app/
 │   │   ├── api/
-│   │   │   ├── routes/           # auth, loans, optimizer, scanner, emi, ai
-│   │   │   ├── deps.py           # Firebase auth dependencies
+│   │   │   ├── routes/           # auth, loans, optimizer, scanner, emi, ai, admin, reviews
+│   │   │   ├── deps.py           # Firebase auth + admin auth dependencies
 │   │   │   └── middleware.py     # Logging, rate limiting, error handler
 │   │   ├── core/
 │   │   │   ├── financial_math.py    # EMI, amortization, reverse EMI
@@ -405,13 +474,13 @@ Indian_Loan_Analyzer_Claude/
 │   │   │   ├── optimization.py      # Multi-loan simulator + freed-EMI rollover
 │   │   │   └── indian_rules.py      # Tax 80C/24b/80E/80EEA, RBI rules
 │   │   ├── db/
-│   │   │   ├── models.py           # 7 SQLAlchemy models + pgvector
+│   │   │   ├── models.py           # 9 SQLAlchemy models + pgvector
 │   │   │   ├── session.py          # Async engine + session factory
-│   │   │   └── repositories/      # user, loan, scan, plan, embedding repos
-│   │   ├── schemas/               # Pydantic v2 request/response models
-│   │   ├── services/              # Azure AI, auth, blob, translator, TTS
+│   │   │   └── repositories/      # user, loan, scan, plan, embedding, review, usage repos
+│   │   ├── schemas/               # Pydantic v2 request/response models (incl. admin, review)
+│   │   ├── services/              # Azure AI, auth, blob, translator, TTS, usage tracker
 │   │   └── config.py              # Environment config (pydantic-settings)
-│   ├── tests/                     # 464 tests across 29 test files
+│   ├── tests/                     # 464+ tests across 29 test files
 │   ├── alembic/                   # Database migrations
 │   ├── Dockerfile                 # Python 3.11-slim + uvicorn
 │   ├── .env.example               # Template for backend env vars
@@ -425,7 +494,7 @@ Indian_Loan_Analyzer_Claude/
 │   │   │   ├── optimizer/         # 4-step wizard components
 │   │   │   ├── loans/             # LoanForm
 │   │   │   └── shared/            # ErrorBoundary, CurrencyDisplay, etc.
-│   │   ├── pages/                 # 7 lazy-loaded page components
+│   │   ├── pages/                 # 9 lazy-loaded page components
 │   │   ├── hooks/                 # useAuth, useLoans, TanStack Query hooks
 │   │   ├── lib/                   # api, firebase, format (INR), emi-math, i18n
 │   │   ├── store/                 # Zustand: auth, language, ui stores
@@ -449,6 +518,47 @@ Indian_Loan_Analyzer_Claude/
 ├── docker-compose.prod.yml        # Production: full stack with nginx
 └── README.md
 ```
+
+---
+
+## Admin Dashboard & Feedback System
+
+### Admin Dashboard (`/admin` — restricted to admin emails)
+
+The admin dashboard provides a single-page overview of the entire platform:
+
+- **Metric Cards** — Total users (+ new this week), total loans by type, documents scanned (+ success rate), estimated API cost (30 days)
+- **Usage by Service** — Table showing call counts, token usage, and cost per Azure service (OpenAI, Doc Intelligence, Blob Storage, Translator, TTS)
+- **Daily Costs** — 14-day breakdown of API spending
+- **User Management** — Full user list with email, join date, and loan count
+- **Review Moderation** — Approve/reject testimonials, respond to feedback
+- **Feature Requests** — Track status: New → Acknowledged → Planned → Done
+
+### API Usage Tracking
+
+Every Azure AI service call is automatically logged with cost estimates:
+
+| Service | Cost Model | Tracking |
+|:--------|:-----------|:---------|
+| OpenAI GPT-4o-mini | $0.15/1M input + $0.60/1M output tokens | Per-call token counts |
+| OpenAI Embeddings | $0.02/1M tokens | Per-call token counts |
+| Document Intelligence | ~$0.0015/page | Per-page logging |
+| Blob Storage | ~$0.001/operation | Per-upload logging |
+| Translator / TTS | Free tier | Call count only |
+
+Usage data powers the admin dashboard cost cards and is stored in the `api_usage_logs` table with JSONB metadata.
+
+### Feedback & Reviews (`/feedback`)
+
+Three types of user submissions:
+
+| Type | Features |
+|:-----|:---------|
+| **Feedback** | 1-5 star rating + comment — general app feedback |
+| **Testimonial** | Star rating + comment — admin approves for public display |
+| **Feature Request** | Title + description — admin tracks status through pipeline |
+
+Users see their own submissions and approved public testimonials from others. Admin can respond to any submission.
 
 ---
 
@@ -510,8 +620,8 @@ SBI, HDFC, ICICI, Axis, PNB, Kotak Mahindra, Bank of Baroda, Union Bank, Canara 
 
 | Metric | Value |
 |:-------|:------|
-| Backend files | 49 Python files (3,525 lines) |
-| Frontend files | 42 TS/TSX files (2,521 lines) |
+| Backend files | 57 Python files |
+| Frontend files | 44 TS/TSX files |
 | Test coverage | 1,822 lines of financial math tests |
 | Critical-path JS | **94 KB** gzipped (target: <170 KB) |
 | EMI verified against | SBI, HDFC bank calculators |
@@ -649,7 +759,7 @@ pip install -r requirements.txt
 pytest -v --tb=short
 ```
 
-**464 tests** across 29 files covering:
+**464+ tests** across 29 files covering:
 
 - `test_financial_math.py` — EMI calculation, amortization, reverse EMI, edge cases
 - `test_strategies.py` — All 4 repayment strategies with freed-EMI rollover
@@ -657,7 +767,7 @@ pytest -v --tb=short
 - `test_optimization.py` — Multi-loan optimizer integration
 - `test_*_routes.py` — API endpoint request/response validation (auth, loans, EMI, scanner, optimizer, AI)
 - `test_*_integration.py` — End-to-end integration tests (auth, loans, EMI, scanner, optimizer)
-- `test_*_service.py` — Azure AI, auth, blob, translator, TTS service mocks
+- `test_*_service.py` — Azure AI (with usage tracking), auth, blob, translator, TTS service mocks
 - `test_schemas.py` — Pydantic model validation
 - `test_country_rules.py`, `test_usa_rules.py` — Multi-country tax rules
 
@@ -669,7 +779,7 @@ npm install
 npm test
 ```
 
-**163 tests** across 12 files covering:
+**150+ tests** across 12 files covering:
 
 - `format.test.ts` — Indian number formatting (INR ₹1,00,000), compact display (₹1L, ₹1Cr)
 - `emi-math.test.ts` — Client-side EMI calculations
@@ -723,6 +833,8 @@ docker compose -f docker-compose.prod.yml up --build
 - **i18n**: i18next with JSON locale files — add new languages by creating `locales/xx.json` and registering in `lib/i18n.ts`
 - **Financial math**: All monetary calculations use Python `Decimal` with 28-digit precision, `ROUND_HALF_UP` to the paisa
 - **Auth flow**: Firebase client SDK (frontend) → `getIdToken()` → Bearer header → `firebase_admin.auth.verify_id_token()` (backend)
+- **Admin auth**: Hardcoded admin email list checked via `get_admin_user` FastAPI dependency (both backend and frontend)
+- **Usage tracking**: Fire-and-forget logging — every AI/Doc Intel/Blob call records tokens and estimated cost to `api_usage_logs`
 
 ---
 
