@@ -225,7 +225,10 @@
     "emi": "EMI",
     "principal": "मूलधन",
     "interest": "ब्याज",
-    "balance": "शेष राशि"
+    "balance": "शेष राशि",
+    "deleteLoan": "लोन हटाएं",
+    "deleteWarning": "क्या आप वाकई इस लोन को हटाना चाहते हैं? यह पूर्ववत नहीं किया जा सकता।",
+    "deleteSuccess": "लोन सफलतापूर्वक हटाया गया"
   },
   "settings": {
     "displayName": "प्रदर्शन नाम",

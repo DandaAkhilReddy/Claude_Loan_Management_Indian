@@ -225,7 +225,10 @@
     "emi": "Cuota",
     "principal": "Principal",
     "interest": "Interés",
-    "balance": "Saldo"
+    "balance": "Saldo",
+    "deleteLoan": "Eliminar Préstamo",
+    "deleteWarning": "¿Estás seguro de que quieres eliminar este préstamo? No se puede deshacer.",
+    "deleteSuccess": "Préstamo eliminado exitosamente"
   },
   "settings": {
     "displayName": "Nombre para Mostrar",

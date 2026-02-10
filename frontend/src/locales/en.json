@@ -225,7 +225,10 @@
     "emi": "EMI",
     "principal": "Principal",
     "interest": "Interest",
-    "balance": "Balance"
+    "balance": "Balance",
+    "deleteLoan": "Delete Loan",
+    "deleteWarning": "Are you sure you want to delete this loan? This cannot be undone.",
+    "deleteSuccess": "Loan deleted successfully"
   },
   "settings": {
     "displayName": "Display Name",

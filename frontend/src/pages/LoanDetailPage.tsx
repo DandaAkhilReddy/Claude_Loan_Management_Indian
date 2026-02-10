@@ -1,10 +1,12 @@
+import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft } from "lucide-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { ArrowLeft, Trash2 } from "lucide-react";
 import api from "../lib/api";
 import { formatCurrency, formatMonths } from "../lib/format";
 import { useCountryConfig } from "../hooks/useCountryConfig";
+import { useToastStore } from "../store/toastStore";
 import { LoadingSpinner } from "../components/shared/LoadingSpinner";
 import type { Loan, AmortizationEntry } from "../types";
 
@@ -13,11 +15,23 @@ export function LoanDetailPage() {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const config = useCountryConfig();
+  const queryClient = useQueryClient();
+  const { addToast } = useToastStore();
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const fmt = (n: number) => formatCurrency(n, config.code);
 
   const { data: loan, isLoading } = useQuery<Loan>({
     queryKey: ["loan", id],
     queryFn: () => api.get(`/api/loans/${id}`).then((r) => r.data),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: () => api.delete(`/api/loans/${id}`),
+    onSuccess: () => {
+      addToast({ type: "success", message: t("loanDetail.deleteSuccess") });
+      queryClient.invalidateQueries({ queryKey: ["loans"] });
+      navigate("/");
+    },
   });
 
   const { data: amortization } = useQuery<{ schedule: AmortizationEntry[]; total_interest: number }>({
@@ -44,8 +58,39 @@ export function LoanDetailPage() {
             <h1 className="text-xl font-bold text-gray-900">{loan.bank_name}</h1>
             <p className="text-sm text-gray-500 capitalize">{loan.loan_type} loan — {loan.interest_rate_type} rate</p>
           </div>
-          <span className="text-2xl font-bold text-blue-600">{loan.interest_rate}%</span>
+          <div className="flex items-center gap-3">
+            <span className="text-2xl font-bold text-blue-600">{loan.interest_rate}%</span>
+            <button
+              onClick={() => setShowDeleteConfirm(true)}
+              className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+              title={t("loanDetail.deleteLoan")}
+            >
+              <Trash2 className="w-5 h-5" />
+            </button>
+          </div>
         </div>
+
+        {/* Delete Confirmation */}
+        {showDeleteConfirm && (
+          <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <p className="text-sm text-red-800 font-medium mb-3">{t("loanDetail.deleteWarning")}</p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => deleteMutation.mutate()}
+                disabled={deleteMutation.isPending}
+                className="px-3 py-1.5 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 disabled:opacity-50"
+              >
+                {deleteMutation.isPending ? t("common.loading") : t("common.delete")}
+              </button>
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                className="px-3 py-1.5 bg-white text-gray-700 rounded-lg text-sm font-medium border border-gray-300 hover:bg-gray-50"
+              >
+                {t("common.cancel")}
+              </button>
+            </div>
+          </div>
+        )}
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div>
