@@ -161,7 +161,19 @@
       "sensitivityDesc": "ब्याज दर में बदलाव आपके भुगतान को कैसे प्रभावित करेगा",
       "rateChange": "दर परिवर्तन",
       "totalInterest": "कुल ब्याज",
-      "totalMonths": "कुल महीने"
+      "totalMonths": "कुल महीने",
+      "withoutPlan": "प्लान के बिना",
+      "withPlan": "प्लान के साथ",
+      "payoffTimeline": "ऋण भुगतान समयरेखा",
+      "paidOffMonth": "महीना {{month}}",
+      "savedMonths": "{{months}} महीने बचे",
+      "actionPlan": "आपकी कार्य योजना",
+      "actionFocus": "{{bank}} ({{type}}) पर अतिरिक्त भुगतान करें — सर्वोच्च प्राथमिकता",
+      "actionPaidOff": "{{bank}} महीने {{month}} तक चुकता हो जाएगा — {{saved}} महीने पहले!",
+      "actionFreedEmi": "{{bank}} चुकने के बाद, इसकी {{emi}}/माह EMI शेष ऋणों में जुड़ जाएगी",
+      "actionLumpSum": "महीने {{month}} में {{amount}} की एकमुश्त राशि भुगतान तेज करेगी",
+      "actionRateLock": "दर लॉक पर विचार करें — 1% वृद्धि से {{cost}} अधिक ब्याज लगेगा",
+      "perLoanBreakdown": "प्रति-ऋण विवरण"
     }
   },
   "emi": {
@@ -195,7 +207,8 @@
     "scanFailed": "आपका दस्तावेज़ नहीं पढ़ सका",
     "scanFailedDesc": "स्पष्ट फोटो आज़माएं, या मैन्युअल रूप से दर्ज करें",
     "tryAgain": "फिर से कोशिश करें",
-    "orEnterManually": "या मैन्युअल रूप से दर्ज करें"
+    "orEnterManually": "या मैन्युअल रूप से दर्ज करें",
+    "countryAutoSwitched": "मुद्रा पहचानी गई! {{country}} मोड में बदला गया।"
   },
   "auth": {
     "signIn": "साइन इन",

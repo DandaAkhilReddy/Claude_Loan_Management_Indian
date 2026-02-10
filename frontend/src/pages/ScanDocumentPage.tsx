@@ -6,6 +6,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { FileText, Sparkles, AlertCircle, RotateCcw, PenLine } from "lucide-react";
 import api from "../lib/api";
 import { useToastStore } from "../store/toastStore";
+import { useCountryStore } from "../store/countryStore";
 import { useCountryConfig } from "../hooks/useCountryConfig";
 
 export function ScanDocumentPage() {
@@ -13,6 +14,7 @@ export function ScanDocumentPage() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { addToast } = useToastStore();
+  const { country, setCountry } = useCountryStore();
   const config = useCountryConfig();
   const [showManualForm, setShowManualForm] = useState(false);
   const [scanFailed, setScanFailed] = useState(false);
@@ -37,6 +39,13 @@ export function ScanDocumentPage() {
       return res.data;
     },
     onSuccess: (data) => {
+      // Auto-switch country if document was from a different currency
+      if (data.detected_country && data.detected_country !== country) {
+        setCountry(data.detected_country as "IN" | "US");
+        const countryName = data.detected_country === "US" ? "United States" : "India";
+        addToast({ type: "info", message: t("scanner.countryAutoSwitched", { country: countryName }) });
+      }
+
       if (data.loan_id) {
         addToast({ type: "success", message: t("scanner.loanCreated") });
         queryClient.invalidateQueries({ queryKey: ["loans"] });

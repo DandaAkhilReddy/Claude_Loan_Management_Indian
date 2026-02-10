@@ -25,20 +25,27 @@ logger = logging.getLogger(__name__)
 # ---------- GPT-4o Vision prompts ----------
 
 EXTRACTION_SYSTEM_PROMPT = """You are a document analysis AI that extracts loan/financial details from documents.
-Extract whatever financial information you can find. Return a JSON object with these fields:
-- bank_name: The bank or financial institution name (e.g., "SBI", "HDFC", "Chase")
+Extract loan information and return a JSON object with these fields:
+- bank_name: The bank or financial institution name (e.g., "SBI", "HDFC", "Chase", "Wells Fargo")
 - loan_type: One of: home, personal, car, education, gold, credit_card, business (best guess)
-- principal_amount: The loan principal/sanctioned amount as a plain number string without commas or currency symbols (e.g., "2500000")
-- interest_rate: Annual interest rate as a number string (e.g., "8.5")
-- emi_amount: Monthly EMI/installment as a plain number string without commas (e.g., "21000")
+- principal_amount: The original loan principal or "Amount Financed" as a plain number string (e.g., "2500000").
+  For US Truth-in-Lending documents, use the "Amount Financed" field.
+  This is typically the LARGEST dollar amount — NOT monthly payments, fees, finance charges, or insurance.
+  Look for labels: "Amount Financed", "Loan Amount", "Principal Amount", "Sanctioned Amount".
+- interest_rate: Annual interest rate as a number string (e.g., "8.5").
+  NOT the APR — prefer "Interest Rate", "Rate of Interest", or "Note Rate" over APR if both appear.
+- emi_amount: Monthly payment as a plain number string (e.g., "21000").
+  Look for "Monthly Payment", "EMI", "Installment Amount", "Payment Amount".
+  This is the recurring monthly amount, NOT the total of all payments.
 - tenure_months: Loan tenure in months as a number string (e.g., "240"). Convert years to months if needed.
 - account_number: Loan or account number if visible
+- currency: The currency in the document. "INR" for ₹/Rupees/Indian currency. "USD" for $/Dollars/US currency. "" if unknown.
 
 Rules:
 - Return "" (empty string) for any field you cannot find in the document.
 - Only return values you are confident about from the document content.
 - Remove currency symbols (₹, $, etc.) and commas from amounts.
-- If the document is not a loan/financial document, still try to extract any financial amounts visible.
+- If the document is not a loan/financial document, return empty strings for all fields.
 - Always return valid JSON."""
 
 EXTRACTION_USER_PROMPT = "Extract all loan and financial details from this document."
@@ -191,6 +198,18 @@ def _extract_with_patterns(text: str, field: str, patterns: dict) -> tuple[str, 
     return "", 0.0
 
 
+def _detect_currency_from_text(text: str) -> str:
+    """Detect currency from document text. Returns 'INR', 'USD', or ''."""
+    inr_signals = len(re.findall(r"₹|\bRs\.?\b|\bINR\b|\brupees?\b|\blakhs?\b|\blacs?\b|\bcrores?\b", text, re.IGNORECASE))
+    usd_signals = len(re.findall(r"\$|\bUSD\b|\bdollars?\b", text, re.IGNORECASE))
+
+    if inr_signals > usd_signals and inr_signals >= 1:
+        return "INR"
+    if usd_signals > inr_signals and usd_signals >= 1:
+        return "USD"
+    return ""
+
+
 class ScannerService:
     """Document scanner: GPT-4o Vision (primary) + Azure Doc Intel regex (fallback)."""
 
@@ -263,6 +282,7 @@ class ScannerService:
 
         elapsed_ms = int((time.time() - start_time) * 1000)
         logger.info(f"AI extraction completed in {elapsed_ms}ms, extracted {len(fields)} fields")
+        logger.info(f"AI extracted fields: {[(f.field_name, f.value) for f in fields]}")
         return fields
 
     def _parse_ai_response(self, raw: str) -> list[ExtractedField]:
@@ -270,6 +290,7 @@ class ScannerService:
 
         Robust: tries direct JSON parse → code block extraction → brace extraction.
         """
+        logger.info(f"Raw AI response: {raw[:500]}")
         data = None
 
         # 1. Direct JSON parse
@@ -303,6 +324,7 @@ class ScannerService:
         field_keys = [
             "bank_name", "loan_type", "principal_amount",
             "interest_rate", "emi_amount", "tenure_months", "account_number",
+            "currency",
         ]
 
         fields = []
@@ -399,49 +421,65 @@ class ScannerService:
 
         return fields
 
-    def _extract_fields(self, text: str, country: str = "IN") -> list[ExtractedField]:
-        """Extract loan-related fields from document text."""
-        patterns = PATTERNS_IN if country == "IN" else PATTERNS_US
-        bank_normalizer = BANK_NORMALIZER_IN if country == "IN" else BANK_NORMALIZER_US
-
+    @staticmethod
+    def _run_patterns(text: str, patterns: dict, bank_normalizer: dict) -> list[ExtractedField]:
+        """Run a single set of regex patterns against text."""
         fields: list[ExtractedField] = []
 
-        # Bank name
         bank_raw, bank_conf = _extract_with_patterns(text, "bank_name", patterns)
         if bank_raw:
             normalized = bank_normalizer.get(bank_raw.lower(), bank_raw.upper())
             fields.append(ExtractedField("bank_name", normalized, bank_conf))
 
-        # Loan type
         type_raw, type_conf = _extract_with_patterns(text, "loan_type", patterns)
         if type_raw:
             normalized = LOAN_TYPE_NORMALIZER.get(type_raw.lower(), "personal")
             fields.append(ExtractedField("loan_type", normalized, type_conf))
 
-        # Principal amount
         principal_raw, principal_conf = _extract_with_patterns(text, "principal", patterns)
         if principal_raw:
             fields.append(ExtractedField("principal_amount", _clean_amount(principal_raw), principal_conf))
 
-        # Interest rate
         rate_raw, rate_conf = _extract_with_patterns(text, "interest_rate", patterns)
         if rate_raw:
             fields.append(ExtractedField("interest_rate", rate_raw, rate_conf))
 
-        # EMI / Monthly payment
         emi_raw, emi_conf = _extract_with_patterns(text, "emi_amount", patterns)
         if emi_raw:
             fields.append(ExtractedField("emi_amount", _clean_amount(emi_raw), emi_conf))
 
-        # Tenure
         tenure_raw, tenure_conf = _extract_with_patterns(text, "tenure", patterns)
         if tenure_raw:
             fields.append(ExtractedField("tenure_months", tenure_raw, tenure_conf))
 
-        # Account number
         acc_raw, acc_conf = _extract_with_patterns(text, "account_number", patterns)
         if acc_raw:
             fields.append(ExtractedField("account_number", acc_raw, acc_conf))
+
+        return fields
+
+    def _extract_fields(self, text: str, country: str = "IN") -> list[ExtractedField]:
+        """Extract loan-related fields from document text with auto currency detection.
+
+        Tries the primary pattern set (based on country), then the alternate set.
+        Uses whichever found more fields (prefers primary on tie).
+        Also detects currency from text and appends as a field.
+        """
+        primary_patterns = PATTERNS_IN if country == "IN" else PATTERNS_US
+        primary_normalizer = BANK_NORMALIZER_IN if country == "IN" else BANK_NORMALIZER_US
+        alt_patterns = PATTERNS_US if country == "IN" else PATTERNS_IN
+        alt_normalizer = BANK_NORMALIZER_US if country == "IN" else BANK_NORMALIZER_IN
+
+        primary_fields = self._run_patterns(text, primary_patterns, primary_normalizer)
+        alt_fields = self._run_patterns(text, alt_patterns, alt_normalizer)
+
+        # Use whichever found more data (prefer primary on tie)
+        fields = primary_fields if len(primary_fields) >= len(alt_fields) else alt_fields
+
+        # Detect currency and append as a field
+        currency = _detect_currency_from_text(text)
+        if currency:
+            fields.append(ExtractedField("detected_currency", currency, 0.80))
 
         return fields
 

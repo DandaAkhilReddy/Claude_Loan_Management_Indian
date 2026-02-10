@@ -2,7 +2,7 @@
 
 # Indian Loan Analyzer
 
-### AI-Powered Multi-Loan Optimizer with Tax-Aware Repayment Strategies for India
+### AI-Powered Multi-Loan Optimizer with Tax-Aware Repayment Strategies
 
 [![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
@@ -10,18 +10,42 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://typescriptlang.org)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16+pgvector-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](https://postgresql.org)
 [![Azure](https://img.shields.io/badge/100%25_Azure-0078D4?style=for-the-badge&logo=microsoftazure&logoColor=white)](https://azure.microsoft.com)
+[![Tests](https://img.shields.io/badge/Tests-627_Passing-brightgreen?style=for-the-badge&logo=testcafe&logoColor=white)](#testing)
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](LICENSE)
-[![PRs Welcome](https://img.shields.io/badge/PRs-Welcome-brightgreen?style=for-the-badge)](https://github.com/DandaAkhilReddy/Claude_Loan_Management_Indian/pulls)
 
 **Scan loan documents with AI | Optimize repayment across multiple loans | Save lakhs in interest**
 
-[Live Demo](https://app-loan-analyzer-web.azurewebsites.net) | [API Swagger](https://app-loan-analyzer-api.azurewebsites.net/docs)
+[Live Demo](https://app-loan-analyzer-web.azurewebsites.net) | [API Swagger](https://app-loan-analyzer-api.azurewebsites.net/docs) | [CTO Review: 8.2/10](docs/CTO_REVIEW.md)
 
 [Getting Started](#quick-start) | [Features](#features) | [Architecture](#architecture) | [API Docs](#api-endpoints) | [CI/CD](#cicd-pipeline) | [Contributing](#contributing)
 
 ---
 
 </div>
+
+## Highlights
+
+<table>
+<tr>
+<td>
+
+**4 Smart Strategies** with freed-EMI relay race cascade — when one loan finishes, its EMI snowballs into the next
+
+</td>
+<td>
+
+**AI Document Scanner** with GPT-4o Vision + Azure Doc Intelligence — auto-detects INR/USD currency and creates loans instantly
+
+</td>
+<td>
+
+**Visual Payoff Dashboard** with timeline bars, before/after comparison, and personalized action plan
+
+</td>
+</tr>
+</table>
+
+---
 
 ## Features
 
@@ -31,13 +55,13 @@
 
 **Smart Optimizer**
 
-4 repayment strategies with freed-EMI relay race cascade
+4 repayment strategies with freed-EMI relay race cascade + payoff timeline visualization
 </td>
 <td width="25%" align="center">
 
 **Document Scanner**
 
-Azure AI OCR extracts loan details from bank statements
+GPT-4o Vision + Azure OCR — auto-detect currency (INR/USD), cross-field validation
 </td>
 <td width="25%" align="center">
 
@@ -55,21 +79,21 @@ RAG-powered Q&A about loans, RBI rules & tax benefits
 <tr>
 <td align="center">
 
-**Admin Dashboard**
+**Payoff Timeline**
 
-Usage metrics, API cost tracking, user & review management
+Visual horizontal bars per loan — color-coded by type, months saved highlighted
 </td>
 <td align="center">
 
-**Feedback & Reviews**
+**Action Plan**
 
-Star ratings, testimonials, feature requests with admin moderation
+Auto-generated next steps: focus order, freed EMI rollover, rate lock warnings
 </td>
 <td align="center">
 
-**API Usage Tracking**
+**Multi-Currency**
 
-Per-call cost estimation for OpenAI, Doc Intel, Blob, TTS
+Auto-detect INR/USD from scanned documents — switches country context automatically
 </td>
 <td align="center">
 
@@ -89,13 +113,13 @@ Phone OTP (India-first) + Google Sign-In
 
 **Tax Optimization**
 
-Old vs New regime comparison with 80C, 24(b), 80E, 80EEA
+Old vs New regime: 80C, 24(b), 80E, 80EEA (India) + mortgage/student deductions (US)
 </td>
 <td align="center">
 
-**Indian Formatting**
+**Admin Dashboard**
 
-INR display as 1,00,000 — not 100,000
+Usage metrics, API cost tracking, user & review management
 </td>
 <td align="center">
 
@@ -105,6 +129,55 @@ Consent records, data export, right to erasure, audit logs
 </td>
 </tr>
 </table>
+
+---
+
+## Optimizer Dashboard Preview
+
+The optimizer wizard walks you through 4 steps and produces a rich results dashboard:
+
+```
+Step 1: Select Loans → Step 2: Set Budget → Step 3: Choose Strategy → Step 4: Results
+```
+
+### Results Dashboard Layout
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│                     You save 2,50,000 in interest!              │
+│  ┌─────────────────────┐   ┌──────────────────────┐            │
+│  │   Without Plan      │   │    With Plan         │            │
+│  │   8,50,000 interest │   │   6,00,000 interest  │            │
+│  │   240 months        │   │   180 months         │            │
+│  └─────────────────────┘   └──────────────────────┘            │
+│                  Debt-free 60 months earlier                    │
+├──────────────────────────────────────────────────────────────────┤
+│  Loan Payoff Timeline                                           │
+│  SBI Home Loan    ████████████████████░░░░ Month 180 (60 saved) │
+│  HDFC Personal    ████████░░░░░░░░░░░░░░░ Month 84  (36 saved) │
+│  ICICI Car        ████░░░░░░░░░░░░░░░░░░░ Month 36  (12 saved) │
+├──────────────────────────────────────────────────────────────────┤
+│  Your Action Plan                                               │
+│  1. Focus extra payments on HDFC Personal — highest priority    │
+│  2. HDFC will be paid off by month 84 — 36 months early!       │
+│  3. Once HDFC is paid, its 21K/mo EMI rolls into remaining     │
+│  4. Consider rate lock — 1% increase costs 45K more            │
+├──────────────────────────────────────────────────────────────────┤
+│  ┌─ Avalanche ──────┐   ┌─ Smart Hybrid (Best) ─┐             │
+│  │ Saved: 2.1L      │   │ Saved: 2.5L           │             │
+│  │ 55 mo earlier    │   │ 60 mo earlier          │             │
+│  │ Per-loan:        │   │ Per-loan:              │             │
+│  │ • SBI → mo 185   │   │ • SBI → mo 180        │             │
+│  │ • HDFC → mo 90   │   │ • HDFC → mo 84        │             │
+│  └──────────────────┘   └────────────────────────┘             │
+├──────────────────────────────────────────────────────────────────┤
+│  Rate Sensitivity Analysis                                      │
+│  -1%  │  5,20,000  │ 170 mo │ Saved: 3,30,000                 │
+│   0%  │  6,00,000  │ 180 mo │ Saved: 2,50,000  ← current     │
+│  +1%  │  6,90,000  │ 192 mo │ Saved: 1,60,000                 │
+│  +2%  │  7,85,000  │ 205 mo │ Saved: 65,000                   │
+└──────────────────────────────────────────────────────────────────┘
+```
 
 ---
 
@@ -137,12 +210,45 @@ Result: Pay personal loan first (12% effective), even though
 
 ---
 
+## AI Document Scanner
+
+The scanner uses a **3-strategy cascade** for maximum extraction accuracy:
+
+```
+Strategy 1: GPT-4o Vision (images) / GPT-4o text analysis (PDFs)
+     │
+     ▼ (if fails)
+Strategy 2: Azure OCR → GPT-4o text analysis
+     │
+     ▼ (if fails)
+Strategy 3: Azure Document Intelligence → regex pattern matching
+```
+
+### Key Scanner Features
+
+| Feature | Description |
+|:--------|:------------|
+| **Auto Currency Detection** | Detects INR (₹, Rs, lakh) or USD ($, dollars) from document content |
+| **Auto Country Switch** | Switches app context (IN/US) based on detected currency |
+| **Cross-Field Validation** | EMI > principal? Swap. Rate > 50%? Cap. Principal < 3x EMI? Flag. |
+| **Smart Prompt Engineering** | Distinguishes Amount Financed from Finance Charge on US TILA documents |
+| **Dual Pattern Sets** | Indian patterns (lakh notation, SBI/HDFC banks) + US patterns (standard notation, Chase/Wells Fargo) |
+| **Auto EMI Calculation** | If EMI missing but principal found, calculates from rate + tenure |
+
+### Supported Banks
+
+**India:** SBI, HDFC, ICICI, Axis, PNB, Kotak Mahindra, Bank of Baroda, Union Bank, Canara Bank, Indian Bank
+
+**US:** Chase, Wells Fargo, Bank of America, Citi, US Bank, Capital One
+
+---
+
 ## Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                 React 19 + TypeScript PWA                    │
-│              Vite + Tailwind CSS + Recharts                  │
+│              Vite + Tailwind CSS + Lucide Icons              │
 │  ┌──────────┐ ┌───────────┐ ┌────────┐ ┌────────────────┐  │
 │  │Dashboard │ │ Optimizer │ │Scanner │ │ EMI Calculator │  │
 │  │          │ │  Wizard   │ │  OCR   │ │   (public)     │  │
@@ -177,11 +283,11 @@ Result: Pay personal loan first (12% effective), even though
 │              │ │                  │ │ • Document Intelligence│
 │ Raw docs     │ │ • users          │ │   (Layout model)      │
 │ Hot→Cool→    │ │ • loans          │ │ • OpenAI GPT-4o-mini  │
-│ Archive      │ │ • scan_jobs      │ │ • Translator (free)   │
-│              │ │ • repayment_plans│ │ • Neural TTS (free)   │
-│              │ │ • doc_embeddings │ │   Neerja / Swara /    │
-│              │ │ • consent_records│ │   Shruti              │
-│              │ │ • audit_logs     │ │                       │
+│ Archive      │ │ • scan_jobs      │ │   (Vision + Text)     │
+│              │ │ • repayment_plans│ │ • Translator (free)   │
+│              │ │ • doc_embeddings │ │ • Neural TTS (free)   │
+│              │ │ • consent_records│ │   Neerja / Swara /    │
+│              │ │ • audit_logs     │ │   Shruti              │
 │              │ │ • reviews        │ │                       │
 │              │ │ • api_usage_logs │ │                       │
 └──────────────┘ └──────────────────┘ └───────────────────────┘
@@ -219,7 +325,6 @@ Result: Pay personal loan first (12% effective), even though
 | Server State | TanStack Query | 5.90.20 |
 | Client State | Zustand | 5.0.11 |
 | Styling | Tailwind CSS | 4.1.18 |
-| Charts | Recharts | 3.7.0 |
 | i18n | i18next + react-i18next | 25.8.4 |
 | Auth | Firebase | 12.9.0 |
 | Validation | Zod | 4.3.6 |
@@ -242,36 +347,37 @@ Result: Pay personal loan first (12% effective), even though
 │ email            │  │    │ action           │
 │ phone            │  │    │ details (JSONB)  │
 │ preferred_lang   │  │    └──────────────────┘
-│ tax_regime       │  │
-│ annual_income    │  │    ┌──────────────────┐
-└──────────────────┘  │    │ consent_records  │
-                      │    │──────────────────│
-    ┌─────────────────┤    │ id (PK)          │
-    │                 ├───>│ user_id (FK)     │
-    │                 │    │ purpose          │
+│ country (IN/US)  │  │
+│ tax_regime       │  │    ┌──────────────────┐
+│ annual_income    │  │    │ consent_records  │
+└──────────────────┘  │    │──────────────────│
+                      │    │ id (PK)          │
+    ┌─────────────────┤    │ user_id (FK)     │
+    │                 ├───>│ purpose          │
     │                 │    │ consent_text     │
-    ▼                 │    └──────────────────┘
-┌──────────────────┐  │
-│      loans       │  │    ┌──────────────────────┐
-│──────────────────│  │    │ document_embeddings  │
-│ id (PK, UUID)    │  │    │──────────────────────│
-│ user_id (FK)     │  │    │ id (PK)              │
-│ bank_name        │  │    │ embedding Vector(1536)│ ◄── pgvector
-│ loan_type        │  │    │ chunk_text           │
-│ principal_amount │  │    │ source_type          │
-│ outstanding_     │  │    │ metadata (JSONB)     │
-│   principal      │  │    └──────────────────────┘
-│ interest_rate    │  │
-│ emi_amount       │  │    ┌──────────────────┐
-│ eligible_80c     │  └───>│ repayment_plans  │
-│ eligible_24b     │       │──────────────────│
-│ eligible_80e     │       │ id (PK)          │
-│ eligible_80eea   │       │ user_id (FK)     │
-│ status           │       │ strategy         │
-└──────────────────┘       │ config (JSONB)   │
-        │                  │ results (JSONB)  │
-        ▼                  │ is_active        │
-┌──────────────────┐       └──────────────────┘
+    │                 │    └──────────────────┘
+    ▼                 │
+┌──────────────────┐  │    ┌──────────────────────┐
+│      loans       │  │    │ document_embeddings  │
+│──────────────────│  │    │──────────────────────│
+│ id (PK, UUID)    │  │    │ id (PK)              │
+│ user_id (FK)     │  │    │ embedding Vector(1536)│ ◄── pgvector
+│ bank_name        │  │    │ chunk_text           │
+│ loan_type        │  │    │ source_type          │
+│ principal_amount │  │    │ metadata (JSONB)     │
+│ outstanding_     │  │    └──────────────────────┘
+│   principal      │  │
+│ interest_rate    │  │    ┌──────────────────┐
+│ emi_amount       │  └───>│ repayment_plans  │
+│ eligible_80c     │       │──────────────────│
+│ eligible_24b     │       │ id (PK)          │
+│ eligible_80e     │       │ user_id (FK)     │
+│ eligible_80eea   │       │ strategy         │
+│ status           │       │ config (JSONB)   │
+└──────────────────┘       │ results (JSONB)  │
+        │                  │ is_active        │
+        ▼                  └──────────────────┘
+┌──────────────────┐
 │    scan_jobs     │
 │──────────────────│
 │ id (PK, UUID)    │
@@ -312,7 +418,7 @@ Result: Pay personal loan first (12% effective), even though
 |:-------|:---------|:-----|:------------|
 | `POST` | `/api/auth/verify-token` | - | Firebase token exchange + user upsert |
 | `GET` | `/api/auth/me` | Required | Current user profile |
-| `PUT` | `/api/auth/me` | Required | Update profile (language, tax regime) |
+| `PUT` | `/api/auth/me` | Required | Update profile (language, tax regime, country) |
 
 ### Loans
 
@@ -329,7 +435,7 @@ Result: Pay personal loan first (12% effective), even though
 
 | Method | Endpoint | Auth | Description |
 |:-------|:---------|:-----|:------------|
-| `POST` | `/api/scanner/upload` | Required | Upload PDF/PNG/JPG (max 10MB) for OCR |
+| `POST` | `/api/scanner/upload` | Required | Upload PDF/PNG/JPG — auto-detect currency, create loan |
 | `GET` | `/api/scanner/status/{id}` | Required | Poll OCR processing status |
 | `POST` | `/api/scanner/{id}/confirm` | Required | Confirm extracted fields, create loan |
 
@@ -341,6 +447,7 @@ Result: Pay personal loan first (12% effective), even though
 | `POST` | `/api/optimizer/quick-compare` | Required | Quick savings preview |
 | `POST` | `/api/optimizer/what-if` | Required | Single loan scenario analysis |
 | `POST` | `/api/optimizer/tax-impact` | Required | Old vs New tax regime comparison |
+| `POST` | `/api/optimizer/sensitivity` | Required | Rate sensitivity analysis |
 | `POST` | `/api/optimizer/save-plan` | Required | Save repayment plan |
 | `GET` | `/api/optimizer/plans` | Required | List saved plans |
 
@@ -379,8 +486,6 @@ Result: Pay personal loan first (12% effective), even though
 | `GET` | `/api/admin/reviews` | Admin | All reviews (filterable by type/status) |
 | `PUT` | `/api/admin/reviews/{id}` | Admin | Update review status / admin response |
 | `DELETE` | `/api/admin/reviews/{id}` | Admin | Delete a review |
-
-> **Admin access** is restricted to hardcoded emails (`areddy@hhamedicine.com`, `admin@test.com`).
 
 ---
 
@@ -472,15 +577,16 @@ Indian_Loan_Analyzer_Claude/
 │   │   │   ├── financial_math.py    # EMI, amortization, reverse EMI
 │   │   │   ├── strategies.py        # Avalanche, Snowball, SmartHybrid, Proportional
 │   │   │   ├── optimization.py      # Multi-loan simulator + freed-EMI rollover
-│   │   │   └── indian_rules.py      # Tax 80C/24b/80E/80EEA, RBI rules
+│   │   │   ├── indian_rules.py      # Tax 80C/24b/80E/80EEA, RBI rules
+│   │   │   └── usa_rules.py         # Federal brackets, mortgage/student deductions
 │   │   ├── db/
 │   │   │   ├── models.py           # 9 SQLAlchemy models + pgvector
 │   │   │   ├── session.py          # Async engine + session factory
 │   │   │   └── repositories/      # user, loan, scan, plan, embedding, review, usage repos
-│   │   ├── schemas/               # Pydantic v2 request/response models (incl. admin, review)
+│   │   ├── schemas/               # Pydantic v2 request/response models
 │   │   ├── services/              # Azure AI, auth, blob, translator, TTS, usage tracker
 │   │   └── config.py              # Environment config (pydantic-settings)
-│   ├── tests/                     # 464+ tests across 29 test files
+│   ├── tests/                     # 487+ tests across 30 test files
 │   ├── alembic/                   # Database migrations
 │   ├── Dockerfile                 # Python 3.11-slim + uvicorn
 │   ├── .env.example               # Template for backend env vars
@@ -491,14 +597,14 @@ Indian_Loan_Analyzer_Claude/
 │   │   ├── components/
 │   │   │   ├── auth/              # LoginPage (Email/Password + Google)
 │   │   │   ├── layout/            # AppShell, Header, Sidebar, MobileNav
-│   │   │   ├── optimizer/         # 4-step wizard components
+│   │   │   ├── optimizer/         # 4-step wizard: SelectLoans, SetBudget, ChooseStrategy, Results
 │   │   │   ├── loans/             # LoanForm
 │   │   │   └── shared/            # ErrorBoundary, CurrencyDisplay, etc.
 │   │   ├── pages/                 # 9 lazy-loaded page components
-│   │   ├── hooks/                 # useAuth, useLoans, TanStack Query hooks
-│   │   ├── lib/                   # api, firebase, format (INR), emi-math, i18n
-│   │   ├── store/                 # Zustand: auth, language, ui stores
-│   │   ├── locales/               # en.json, hi.json, te.json, es.json
+│   │   ├── hooks/                 # useAuth, useLoans, useCountryConfig
+│   │   ├── lib/                   # api, firebase, format (INR/USD), emi-math, i18n
+│   │   ├── store/                 # Zustand: auth, language, country, ui stores
+│   │   ├── locales/               # en.json, hi.json, te.json
 │   │   └── types/                 # TypeScript interfaces
 │   ├── Dockerfile                 # Node build + nginx serve
 │   ├── .env.example               # Template for frontend env vars
@@ -546,20 +652,6 @@ Every Azure AI service call is automatically logged with cost estimates:
 | Blob Storage | ~$0.001/operation | Per-upload logging |
 | Translator / TTS | Free tier | Call count only |
 
-Usage data powers the admin dashboard cost cards and is stored in the `api_usage_logs` table with JSONB metadata.
-
-### Feedback & Reviews (`/feedback`)
-
-Three types of user submissions:
-
-| Type | Features |
-|:-----|:---------|
-| **Feedback** | 1-5 star rating + comment — general app feedback |
-| **Testimonial** | Star rating + comment — admin approves for public display |
-| **Feature Request** | Title + description — admin tracks status through pipeline |
-
-Users see their own submissions and approved public testimonials from others. Admin can respond to any submission.
-
 ---
 
 ## India-Specific Features
@@ -581,14 +673,17 @@ Compact:   ₹1L  ₹1Cr  ₹5K            (Lakh, Crore, Thousand)
 | **80E** | Education loan interest | No cap (8-year window) | Education |
 | **80EEA** | First-time buyer interest | ₹1.5L (2019-2022 loans) | Home |
 
+### US Tax Support
+
+| Deduction | Benefit | Loan Type |
+|:----------|:--------|:----------|
+| **Mortgage Interest** | Deductible on first $750K of debt | Home |
+| **Student Loan Interest** | Up to $2,500/year | Education |
+
 ### RBI Prepayment Rules
 
 - **Floating rate loans**: 0% prepayment penalty (RBI circular 2014)
 - **Fixed rate loans**: Bank-specific foreclosure charges (typically 2-4%)
-
-### Supported Indian Banks
-
-SBI, HDFC, ICICI, Axis, PNB, Kotak Mahindra, Bank of Baroda, Union Bank, Canara Bank, Indian Bank — with regex patterns for document field extraction.
 
 ### Indian TTS Voices
 
@@ -620,12 +715,13 @@ SBI, HDFC, ICICI, Axis, PNB, Kotak Mahindra, Bank of Baroda, Union Bank, Canara 
 
 | Metric | Value |
 |:-------|:------|
-| Backend files | 57 Python files |
-| Frontend files | 44 TS/TSX files |
-| Test coverage | 1,822 lines of financial math tests |
+| Backend tests | **487** passing across 30 files |
+| Frontend tests | **163** passing across 12 files |
 | Critical-path JS | **94 KB** gzipped (target: <170 KB) |
 | EMI verified against | SBI, HDFC bank calculators |
 | Decimal precision | 28 digits, ROUND_HALF_UP to paisa |
+| Scanner strategies | 3-cascade (GPT-4o Vision → OCR+AI → Regex) |
+| Supported currencies | INR, USD (auto-detected) |
 
 ---
 
@@ -709,7 +805,7 @@ Automated via **GitHub Actions** (`.github/workflows/deploy.yml`). Triggers on e
 ```
 push to main
      │
-     ├── test-backend ────── pip install → pytest (464 tests)
+     ├── test-backend ────── pip install → pytest (487 tests)
      │
      ├── test-frontend ───── npm install → vitest (163 tests)
      │
@@ -759,12 +855,13 @@ pip install -r requirements.txt
 pytest -v --tb=short
 ```
 
-**464+ tests** across 29 files covering:
+**487+ tests** across 30 files covering:
 
 - `test_financial_math.py` — EMI calculation, amortization, reverse EMI, edge cases
 - `test_strategies.py` — All 4 repayment strategies with freed-EMI rollover
 - `test_indian_rules.py` — Tax deductions (80C, 24b, 80E, 80EEA), RBI prepayment rules
 - `test_optimization.py` — Multi-loan optimizer integration
+- `test_scanner_service.py` — Scanner extraction, currency detection, dual-pattern matching, bank normalization
 - `test_*_routes.py` — API endpoint request/response validation (auth, loans, EMI, scanner, optimizer, AI)
 - `test_*_integration.py` — End-to-end integration tests (auth, loans, EMI, scanner, optimizer)
 - `test_*_service.py` — Azure AI (with usage tracking), auth, blob, translator, TTS service mocks
@@ -779,11 +876,11 @@ npm install
 npm test
 ```
 
-**150+ tests** across 12 files covering:
+**163+ tests** across 12 files covering:
 
 - `format.test.ts` — Indian number formatting (INR ₹1,00,000), compact display (₹1L, ₹1Cr)
 - `emi-math.test.ts` — Client-side EMI calculations
-- `i18n.test.ts` — Translation keys for EN, HI, TE, ES locales
+- `i18n.test.ts` — Translation keys for EN, HI, TE locales
 - `validators.test.ts` — Input validation rules
 - `useAuth.test.ts` — Auth hook: login, signup, logout, token verification (16 tests)
 - `api.test.ts` — Axios interceptors: token attach, 401/429/500 handling (21 tests)
@@ -826,7 +923,7 @@ docker compose -f docker-compose.prod.yml up --build
 
 ### Key Development Patterns
 
-- **State management**: Zustand stores (`authStore`, `languageStore`, `uiStore`) — no Redux boilerplate
+- **State management**: Zustand stores (`authStore`, `languageStore`, `countryStore`, `uiStore`) — no Redux boilerplate
 - **Server state**: TanStack Query with 5-minute stale time, 2 retries, no refetch-on-focus
 - **API client**: Axios with auto-attached Firebase token (request interceptor) and global error handling (response interceptor)
 - **Routing**: React Router v7 with lazy-loaded pages for code-splitting
@@ -835,6 +932,7 @@ docker compose -f docker-compose.prod.yml up --build
 - **Auth flow**: Firebase client SDK (frontend) → `getIdToken()` → Bearer header → `firebase_admin.auth.verify_id_token()` (backend)
 - **Admin auth**: Hardcoded admin email list checked via `get_admin_user` FastAPI dependency (both backend and frontend)
 - **Usage tracking**: Fire-and-forget logging — every AI/Doc Intel/Blob call records tokens and estimated cost to `api_usage_logs`
+- **Currency detection**: Auto-detect INR/USD from scanned documents, switch country context, use appropriate pattern sets
 
 ---
 

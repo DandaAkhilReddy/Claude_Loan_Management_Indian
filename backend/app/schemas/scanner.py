@@ -8,6 +8,7 @@ from pydantic import BaseModel
 class UploadResponse(BaseModel):
     job_id: UUID
     loan_id: str | None = None
+    detected_country: str | None = None  # "IN" or "US" if auto-detected from document currency
     status: str = "uploaded"
     message: str = "Document uploaded. Processing will begin shortly."
     error: str | None = None

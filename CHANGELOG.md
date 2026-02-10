@@ -2,6 +2,29 @@
 
 All notable changes to this project are documented here.
 
+## [1.3.0] - 2026-02-10
+
+### Added
+
+- **Optimizer dashboard upgrade** — payoff timeline with color-coded horizontal bars per loan, before/after comparison banner, personalized action plan with auto-generated next steps, per-loan breakdown in strategy cards
+- **Auto currency detection** — scanner detects INR/USD from document content (₹, $, Rs, lakh, dollar keywords) and auto-switches country context
+- **Dual-pattern extraction** — Indian regex patterns (lakh notation, SBI/HDFC banks) + US patterns (standard notation, Chase/Wells Fargo) with automatic selection
+- **Cross-field validation** — EMI > principal swap detection, rate > 50% cap, principal < 3x EMI flagging
+- **12 currency detection tests** — covering INR/USD symbol detection, keyword matching, multi-signal priority
+- **13 new i18n keys** across EN/HI/TE for optimizer results (payoff timeline, action plan, per-loan breakdown)
+
+### Fixed
+
+- **Scanner hallucination** — improved GPT-4o-mini prompt to distinguish Amount Financed from Finance Charge on US Truth-in-Lending documents
+- **Scanner prompt safety** — removed dangerous "extract any financial amounts" fallback; now returns empty for non-loan documents
+- **Scanner logging** — added raw AI response and extracted fields logging for debugging
+
+### Changed
+
+- Scanner upload response includes `detected_country` field for frontend auto-switching
+- Frontend auto-switches country store when scanner detects different currency
+- README updated with optimizer dashboard preview, scanner docs, test badge
+
 ## [1.2.0] - 2026-02-09
 
 ### Added

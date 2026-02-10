@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Star, MessageSquare, Lightbulb, ThumbsUp } from "lucide-react";
+import { Star, Lightbulb, ThumbsUp } from "lucide-react";
 import api from "../lib/api";
 
 interface Review {

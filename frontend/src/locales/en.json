@@ -161,7 +161,19 @@
       "sensitivityDesc": "How interest rate changes would affect your payoff",
       "rateChange": "Rate Change",
       "totalInterest": "Total Interest",
-      "totalMonths": "Total Months"
+      "totalMonths": "Total Months",
+      "withoutPlan": "Without Plan",
+      "withPlan": "With Plan",
+      "payoffTimeline": "Loan Payoff Timeline",
+      "paidOffMonth": "Month {{month}}",
+      "savedMonths": "{{months}} mo saved",
+      "actionPlan": "Your Action Plan",
+      "actionFocus": "Focus extra payments on {{bank}} ({{type}}) — highest priority",
+      "actionPaidOff": "{{bank}} will be paid off by month {{month}} — {{saved}} months early!",
+      "actionFreedEmi": "Once {{bank}} is paid off, its {{emi}}/mo EMI rolls into remaining loans",
+      "actionLumpSum": "Your lump sum of {{amount}} in month {{month}} accelerates payoff",
+      "actionRateLock": "Consider rate lock — a 1% increase would cost {{cost}} more in interest",
+      "perLoanBreakdown": "Per-loan breakdown"
     }
   },
   "emi": {
@@ -195,7 +207,8 @@
     "scanFailed": "Couldn't read your document",
     "scanFailedDesc": "Try a clearer photo, or enter details manually",
     "tryAgain": "Try Again",
-    "orEnterManually": "Or enter details manually"
+    "orEnterManually": "Or enter details manually",
+    "countryAutoSwitched": "Currency detected! Switched to {{country}} mode."
   },
   "auth": {
     "signIn": "Sign In",

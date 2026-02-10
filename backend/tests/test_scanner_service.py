@@ -24,6 +24,7 @@ from app.services.scanner_service import (
     ScannerService,
     _clean_amount,
     _extract_with_patterns,
+    _detect_currency_from_text,
     BANK_NORMALIZER_IN,
     LOAN_TYPE_NORMALIZER,
     PATTERNS_IN,
@@ -285,3 +286,83 @@ class TestExtractWithPatterns:
         value, confidence = _extract_with_patterns("any text", "nonexistent_field", PATTERNS_IN)
         assert value == ""
         assert confidence == 0.0
+
+
+# ---------------------------------------------------------------------------
+# Currency detection
+# ---------------------------------------------------------------------------
+
+
+class TestCurrencyDetection:
+
+    def test_detect_inr_from_rupee_symbol(self):
+        assert _detect_currency_from_text("Loan amount: ₹25,00,000") == "INR"
+
+    def test_detect_usd_from_dollar_symbol(self):
+        assert _detect_currency_from_text("Loan amount: $250,000") == "USD"
+
+    def test_detect_inr_from_rs_keyword(self):
+        assert _detect_currency_from_text("Principal: Rs. 25,00,000 from SBI") == "INR"
+
+    def test_detect_inr_from_lakh_keyword(self):
+        assert _detect_currency_from_text("Principal: 25 lakh rupees") == "INR"
+
+    def test_detect_usd_from_dollar_keyword(self):
+        assert _detect_currency_from_text("Total balance: 250000 USD") == "USD"
+
+    def test_empty_when_no_currency(self):
+        assert _detect_currency_from_text("Loan term: 30 years at 6.5%") == ""
+
+    def test_inr_wins_when_more_signals(self):
+        assert _detect_currency_from_text("₹50 lakh from SBI, also $ mentioned once") == "INR"
+
+    def test_usd_wins_when_more_signals(self):
+        assert _detect_currency_from_text("Chase mortgage: $250,000 principal, $1,580 monthly payment") == "USD"
+
+
+# ---------------------------------------------------------------------------
+# Dual-pattern extraction (auto currency detection in _extract_fields)
+# ---------------------------------------------------------------------------
+
+
+class TestDualPatternExtraction:
+
+    def test_us_document_detected_with_in_default(self, scanner):
+        """US dollar document should still extract when default country is IN."""
+        text = "Chase Home Loan: $250,000 at 6.5% APR for 30 year term. Monthly payment: $1,580"
+        fields = scanner._extract_fields(text, country="IN")
+        bank = _find_field(fields, "bank_name")
+        assert bank is not None
+        assert bank.value == "Chase"
+        currency = _find_field(fields, "detected_currency")
+        assert currency is not None
+        assert currency.value == "USD"
+
+    def test_indian_document_still_works(self, scanner):
+        """Indian document continues to work as before."""
+        text = "SBI Home Loan: ₹50,00,000 at 8.5% p.a. for 240 months. EMI: ₹43,391"
+        fields = scanner._extract_fields(text, country="IN")
+        principal = _find_field(fields, "principal_amount")
+        assert principal is not None
+        assert principal.value == "5000000"
+        currency = _find_field(fields, "detected_currency")
+        assert currency is not None
+        assert currency.value == "INR"
+
+    def test_us_document_with_us_country(self, scanner):
+        """US document with country=US should use US patterns as primary."""
+        text = "Wells Fargo mortgage: $350,000 at 7% annual for 30 year loan"
+        fields = scanner._extract_fields(text, country="US")
+        bank = _find_field(fields, "bank_name")
+        assert bank is not None
+        assert bank.value == "Wells Fargo"
+        currency = _find_field(fields, "detected_currency")
+        assert currency is not None
+        assert currency.value == "USD"
+
+    def test_no_currency_detected(self, scanner):
+        """Text with no currency signals should not have a detected_currency field."""
+        text = "Loan term: 20 years at 8.5%"
+        fields = scanner._extract_fields(text, country="IN")
+        currency = _find_field(fields, "detected_currency")
+        assert currency is None

@@ -11,6 +11,7 @@ from app.db.session import get_db
 from app.db.models import User
 from app.db.repositories.scan_repo import ScanJobRepository
 from app.db.repositories.loan_repo import LoanRepository
+from app.db.repositories.user_repo import UserRepository
 from app.services.blob_service import BlobService
 from app.services.scanner_service import ScannerService
 from app.schemas.scanner import UploadResponse, ScanStatusResponse, ConfirmScanRequest, ExtractedField
@@ -21,6 +22,12 @@ router = APIRouter(prefix="/api/scanner", tags=["scanner"])
 
 ALLOWED_TYPES = {"application/pdf", "image/png", "image/jpeg", "image/jpg"}
 MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
+
+CURRENCY_TO_COUNTRY = {"INR": "IN", "USD": "US"}
+COUNTRY_DEFAULTS = {
+    "IN": {"rate": 8.5, "tenure": 240},
+    "US": {"rate": 6.5, "tenure": 360},
+}
 
 
 @router.post("/upload", response_model=UploadResponse)
@@ -60,6 +67,7 @@ async def upload_document(
 
     # Trigger OCR and auto-create loan
     created_loan_id = None
+    detected_country = None
     scan_error = None
     try:
         await repo.update_status(job.id, user.id, "processing")
@@ -84,7 +92,7 @@ async def upload_document(
         # Strategy 3: Azure Doc Intel → regex patterns (final fallback)
         if not fields:
             try:
-                fields = await scanner.analyze_from_bytes(content, file.content_type)
+                fields = await scanner.analyze_from_bytes(content, file.content_type, country=user.country)
             except Exception as e:
                 logger.warning(f"Strategy 3 (regex) failed: {e}")
 
@@ -95,13 +103,31 @@ async def upload_document(
         extracted = {f.field_name: f.value for f in fields}
         confidences = {f.field_name: f.confidence for f in fields}
 
-        # Auto-create loan from extracted fields with smart defaults
+        # Resolve detected currency → country
+        detected_currency = extracted.pop("detected_currency", "") or extracted.pop("currency", "")
+        confidences.pop("detected_currency", None)
+        confidences.pop("currency", None)
+        detected_country = CURRENCY_TO_COUNTRY.get(detected_currency)
+        effective_country = detected_country or user.country
+
+        # Auto-create loan from extracted fields with country-aware defaults
         if fields:
+            defaults = COUNTRY_DEFAULTS.get(effective_country, COUNTRY_DEFAULTS["IN"])
             principal = float((extracted.get("principal_amount", "0") or "0").replace(",", "")) or 0
-            rate = float(extracted.get("interest_rate", "0") or "0") or 8.5  # India avg
-            tenure = int(extracted.get("tenure_months", "0") or "0") or 240
+            rate = float(extracted.get("interest_rate", "0") or "0") or defaults["rate"]
+            tenure = int(extracted.get("tenure_months", "0") or "0") or defaults["tenure"]
             emi = float((extracted.get("emi_amount", "0") or "0").replace(",", "")) or 0
             loan_type = extracted.get("loan_type", "personal")
+
+            # Cross-field validation
+            if principal > 0 and emi > 0 and emi > principal:
+                logger.warning(f"Validation: EMI ({emi}) > principal ({principal}), swapping")
+                principal, emi = emi, principal
+            if rate > 50:
+                logger.warning(f"Validation: rate {rate}% seems too high, using default")
+                rate = defaults["rate"]
+            if principal > 0 and emi > 0 and principal < emi * 3:
+                logger.warning(f"Validation: principal ({principal}) < 3x EMI ({emi}), suspicious extraction")
 
             # Auto-calculate EMI if missing but principal is available
             if principal > 0 and emi == 0:
@@ -111,10 +137,12 @@ async def upload_document(
                 else:
                     emi = principal / tenure
 
-            # Auto-infer tax deductions from loan type
-            eligible_80c = loan_type == "home"
-            eligible_24b = loan_type == "home"
-            eligible_80e = loan_type == "education"
+            # Auto-infer tax deductions from loan type and country
+            eligible_80c = loan_type == "home" and effective_country == "IN"
+            eligible_24b = loan_type == "home" and effective_country == "IN"
+            eligible_80e = loan_type == "education" and effective_country == "IN"
+            eligible_mortgage_deduction = loan_type == "home" and effective_country == "US"
+            eligible_student_loan_deduction = loan_type == "education" and effective_country == "US"
 
             if principal > 0:
                 loan_repo = LoanRepository(db)
@@ -132,10 +160,18 @@ async def upload_document(
                     eligible_80c=eligible_80c,
                     eligible_24b=eligible_24b,
                     eligible_80e=eligible_80e,
+                    eligible_mortgage_deduction=eligible_mortgage_deduction,
+                    eligible_student_loan_deduction=eligible_student_loan_deduction,
                     source="scan",
                     source_scan_id=job.id,
                 )
                 created_loan_id = loan.id
+
+        # Auto-switch user country if document currency differs
+        if detected_country and detected_country != user.country:
+            user_repo = UserRepository(db)
+            await user_repo.update(user.id, country=detected_country)
+            logger.info(f"Auto-switched user {user.id} country from {user.country} to {detected_country}")
 
         await repo.update_status(
             job.id,
@@ -152,6 +188,7 @@ async def upload_document(
     return UploadResponse(
         job_id=job.id,
         loan_id=str(created_loan_id) if created_loan_id else None,
+        detected_country=detected_country,
         error=scan_error,
     )
 
