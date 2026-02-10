@@ -132,6 +132,105 @@ async def ask(
     return AIResponse(text=answer, language=lang)
 
 
+class ExplainLoansBatchRequest(BaseModel):
+    loan_ids: list[str]
+
+
+class LoanInsight(BaseModel):
+    loan_id: str
+    text: str
+
+
+class BatchInsightsResponse(BaseModel):
+    insights: list[LoanInsight]
+    language: str
+
+
+class ChatMessage(BaseModel):
+    role: str
+    content: str
+
+
+class ChatRequest(BaseModel):
+    message: str
+    history: list[ChatMessage] = []
+
+
+@router.post("/explain-loans-batch", response_model=BatchInsightsResponse)
+async def explain_loans_batch(
+    req: ExplainLoansBatchRequest,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Generate AI explanations for multiple loans in parallel."""
+    import asyncio
+    from uuid import UUID as _UUID
+
+    repo = LoanRepository(db)
+    ai = AIService()
+    sem = asyncio.Semaphore(5)
+    country = user.country or "IN"
+
+    async def explain_one(loan_id_str: str) -> LoanInsight:
+        async with sem:
+            loan = await repo.get_by_id(_UUID(loan_id_str), user.id)
+            if not loan:
+                return LoanInsight(loan_id=loan_id_str, text="Loan not found")
+            explanation = await ai.explain_loan(
+                bank_name=loan.bank_name,
+                loan_type=loan.loan_type,
+                principal=float(loan.principal_amount),
+                outstanding=float(loan.outstanding_principal),
+                rate=float(loan.interest_rate),
+                rate_type=loan.interest_rate_type,
+                emi=float(loan.emi_amount),
+                remaining_months=loan.remaining_tenure_months,
+                country=country,
+            )
+            return LoanInsight(loan_id=loan_id_str, text=explanation)
+
+    insights = await asyncio.gather(*[explain_one(lid) for lid in req.loan_ids])
+
+    lang = user.preferred_language
+    if lang and lang != "en":
+        translator = TranslatorService()
+        for insight in insights:
+            insight.text = await translator.translate(insight.text, lang)
+
+    return BatchInsightsResponse(insights=list(insights), language=lang or "en")
+
+
+@router.post("/chat", response_model=AIResponse)
+async def chat(
+    req: ChatRequest,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Conversational RAG chat with history."""
+    embedding_svc = EmbeddingService()
+    query_embedding = await embedding_svc.generate_embedding(req.message)
+
+    embed_repo = EmbeddingRepository(db)
+    results = await embed_repo.similarity_search(query_embedding, limit=3)
+    context_chunks = [r.chunk_text for r in results]
+
+    ai = AIService()
+    history = [(m.role, m.content) for m in req.history[-6:]]
+    answer = await ai.chat_with_history(
+        message=req.message,
+        history=history,
+        context_chunks=context_chunks,
+        country=user.country or "IN",
+    )
+
+    lang = user.preferred_language
+    if lang and lang != "en":
+        translator = TranslatorService()
+        answer = await translator.translate(answer, lang)
+
+    return AIResponse(text=answer, language=lang or "en")
+
+
 @router.post("/tts", response_model=TTSResponse)
 async def text_to_speech(
     req: TTSRequest,

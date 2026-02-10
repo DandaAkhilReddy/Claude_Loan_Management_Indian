@@ -86,6 +86,32 @@ export interface EMIResult {
   months_saved: number;
 }
 
+export interface DashboardSummary {
+  has_loans: boolean;
+  loan_count: number;
+  total_debt: number;
+  total_emi: number;
+  suggested_extra: number;
+  recommended_strategy: string;
+  interest_saved: number;
+  months_saved: number;
+  debt_free_months: number;
+  baseline_months: number;
+  strategies_preview: { name: string; interest_saved: number; months_saved: number }[];
+}
+
+export interface LoanInsight {
+  loan_id: string;
+  text: string;
+}
+
+export interface ChatMessage {
+  id: string;
+  role: "user" | "assistant";
+  text: string;
+  timestamp: Date;
+}
+
 export interface TaxImpact {
   old_regime_tax: number;
   new_regime_tax: number;

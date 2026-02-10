@@ -204,3 +204,39 @@ class AIService:
         context = "\n\n---\n\n".join(context_chunks) if context_chunks else "No relevant context found."
         prompt = rag_tmpl.format(context=context, question=question)
         return await self._chat(system, prompt)
+
+    async def chat_with_history(
+        self,
+        message: str,
+        history: list[tuple[str, str]],
+        context_chunks: list[str],
+        country: str = "IN",
+    ) -> str:
+        """Chat with conversation history and RAG context."""
+        if not self.client:
+            return "AI service not configured. Please set Azure OpenAI credentials."
+
+        system, _, _, _ = _get_prompts(country)
+        context = "\n\n---\n\n".join(context_chunks) if context_chunks else "No specific context available."
+
+        system_with_context = f"""{system}
+
+You also have access to this knowledge base context (use it when relevant):
+{context}"""
+
+        messages = [{"role": "system", "content": system_with_context}]
+        for role, content in history:
+            messages.append({"role": role, "content": content})
+        messages.append({"role": "user", "content": message})
+
+        try:
+            response = await self.client.chat.completions.create(
+                model=self.deployment,
+                messages=messages,
+                temperature=0.7,
+                max_tokens=500,
+            )
+            return response.choices[0].message.content or ""
+        except Exception as e:
+            logger.error(f"Chat error: {e}")
+            return f"Sorry, I couldn't process your message. Error: {str(e)}"

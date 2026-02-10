@@ -50,7 +50,21 @@
     "activeLoans": "सक्रिय लोन",
     "perMonth": "प्रति माह",
     "longestRemaining": "सबसे लंबा बाकी लोन",
-    "paid": "चुकाया"
+    "paid": "चुकाया",
+    "aiRecommendation": "AI सिफारिश",
+    "youCouldSave": "आप बचा सकते हैं",
+    "inInterest": "ब्याज में",
+    "byPaying": "भुगतान करके",
+    "extraPerMonth": "अतिरिक्त/माह",
+    "monthsFaster": "महीने पहले",
+    "viewStrategies": "रणनीतियाँ देखें",
+    "withOptimization": "ऑप्टिमाइज़ेशन के साथ",
+    "portfolioHealth": "पोर्टफोलियो स्वास्थ्य",
+    "avgRate": "औसत ब्याज दर",
+    "highestRisk": "सबसे जोखिम वाला लोन",
+    "debtToEmi": "कर्ज-EMI अनुपात",
+    "strategyPreview": "रणनीति तुलना",
+    "aiInsight": "AI अंतर्दृष्टि"
   },
   "loans": {
     "addLoan": "लोन जोड़ें",
@@ -161,7 +175,10 @@
     "statusProcessing": "प्रोसेस हो रहा है...",
     "statusCompleted": "पूर्ण",
     "statusReviewNeeded": "समीक्षा आवश्यक",
-    "statusFailed": "विफल"
+    "statusFailed": "विफल",
+    "loanCreated": "आपके दस्तावेज़ से लोन बनाया गया!",
+    "scanning": "AI आपका दस्तावेज़ पढ़ रहा है...",
+    "scanningDesc": "लोन विवरण स्वचालित रूप से निकाले जा रहे हैं"
   },
   "auth": {
     "signIn": "साइन इन",
@@ -226,5 +243,17 @@
     "headOfHousehold": "परिवार का मुखिया",
     "india": "भारत",
     "unitedStates": "संयुक्त राज्य अमेरिका"
+  },
+  "chat": {
+    "title": "लोन AI सहायक",
+    "openChat": "AI चैट खोलें",
+    "closeChat": "चैट बंद करें",
+    "welcome": "नमस्ते! मैं आपका लोन सलाहकार हूँ",
+    "welcomeDesc": "लोन, टैक्स बचत, या रीपेमेंट रणनीतियों के बारे में कुछ भी पूछें",
+    "placeholder": "लोन, टैक्स, EMI के बारे में पूछें...",
+    "suggestion1": "EMI कैसे कम करें?",
+    "suggestion2": "धारा 80C क्या है?",
+    "suggestion3": "सबसे अच्छी प्रीपेमेंट रणनीति?",
+    "errorResponse": "क्षमा करें, प्रोसेस नहीं हो सका। कृपया पुनः प्रयास करें।"
   }
 }

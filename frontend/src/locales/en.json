@@ -50,7 +50,21 @@
     "activeLoans": "active loan(s)",
     "perMonth": "per month",
     "longestRemaining": "longest remaining loan",
-    "paid": "paid"
+    "paid": "paid",
+    "aiRecommendation": "AI Recommendation",
+    "youCouldSave": "You could save",
+    "inInterest": "in interest",
+    "byPaying": "By paying",
+    "extraPerMonth": "extra/month",
+    "monthsFaster": "months faster",
+    "viewStrategies": "View Strategies",
+    "withOptimization": "with optimization",
+    "portfolioHealth": "Portfolio Health",
+    "avgRate": "Average Interest Rate",
+    "highestRisk": "Highest Risk Loan",
+    "debtToEmi": "Debt-to-EMI Ratio",
+    "strategyPreview": "Strategy Comparison",
+    "aiInsight": "AI Insight"
   },
   "loans": {
     "addLoan": "Add Loan",
@@ -161,7 +175,10 @@
     "statusProcessing": "Processing...",
     "statusCompleted": "Completed",
     "statusReviewNeeded": "Review Needed",
-    "statusFailed": "Failed"
+    "statusFailed": "Failed",
+    "loanCreated": "Loan created from your document!",
+    "scanning": "AI is reading your document...",
+    "scanningDesc": "Extracting loan details automatically"
   },
   "auth": {
     "signIn": "Sign In",
@@ -226,5 +243,17 @@
     "headOfHousehold": "Head of Household",
     "india": "India",
     "unitedStates": "United States"
+  },
+  "chat": {
+    "title": "Loan AI Assistant",
+    "openChat": "Open AI chat",
+    "closeChat": "Close chat",
+    "welcome": "Hi! I'm your loan advisor",
+    "welcomeDesc": "Ask me anything about loans, tax savings, or repayment strategies",
+    "placeholder": "Ask about loans, tax, EMI...",
+    "suggestion1": "How to reduce my EMI?",
+    "suggestion2": "What is Section 80C?",
+    "suggestion3": "Best prepayment strategy?",
+    "errorResponse": "Sorry, I couldn't process that. Please try again."
   }
 }

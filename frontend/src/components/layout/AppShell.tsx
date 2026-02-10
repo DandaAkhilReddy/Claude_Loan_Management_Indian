@@ -2,6 +2,7 @@ import { Outlet } from "react-router-dom";
 import { Sidebar } from "./Sidebar";
 import { Header } from "./Header";
 import { MobileNav } from "./MobileNav";
+import { ChatBot } from "../chat/ChatBot";
 import { useUIStore } from "../../store/uiStore";
 
 export function AppShell() {
@@ -22,6 +23,8 @@ export function AppShell() {
       </div>
       {/* Mobile bottom nav */}
       <MobileNav />
+      {/* AI Chatbot */}
+      <ChatBot />
     </div>
   );
 }

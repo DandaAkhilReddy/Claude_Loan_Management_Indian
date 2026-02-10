@@ -2,9 +2,10 @@ import { useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useDropzone } from "react-dropzone";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { Upload, FileText, CheckCircle, AlertCircle, Loader2 } from "lucide-react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Upload, FileText, CheckCircle, AlertCircle, Loader2, Sparkles } from "lucide-react";
 import api from "../lib/api";
+import { useToastStore } from "../store/toastStore";
 import type { ScanJob } from "../types";
 
 const STATUS_CONFIG = {
@@ -18,6 +19,8 @@ const STATUS_CONFIG = {
 export function ScanDocumentPage() {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
+  const { addToast } = useToastStore();
   const [jobId, setJobId] = useState<string | null>(null);
   const [editFields, setEditFields] = useState<Record<string, string>>({});
 
@@ -31,7 +34,13 @@ export function ScanDocumentPage() {
       return res.data;
     },
     onSuccess: (data) => {
-      setJobId(data.job_id);
+      if (data.loan_id) {
+        addToast({ type: "success", message: t("scanner.loanCreated") });
+        queryClient.invalidateQueries({ queryKey: ["loans"] });
+        navigate("/");
+      } else {
+        setJobId(data.job_id);
+      }
     },
   });
 
@@ -58,6 +67,7 @@ export function ScanDocumentPage() {
         emi_amount: Number(data.emi_amount) || 0,
       }),
     onSuccess: (res) => {
+      queryClient.invalidateQueries({ queryKey: ["loans"] });
       navigate(`/loans/${res.data.loan_id}`);
     },
   });
@@ -77,7 +87,6 @@ export function ScanDocumentPage() {
     maxFiles: 1,
   });
 
-  // Initialize edit fields from scan results
   useEffect(() => {
     if (scanStatus?.extracted_fields && Object.keys(editFields).length === 0) {
       const initial: Record<string, string> = {};
@@ -93,7 +102,7 @@ export function ScanDocumentPage() {
       <h1 className="text-xl font-bold text-gray-900">{t("scanner.title")}</h1>
 
       {/* Upload Zone */}
-      {!jobId && (
+      {!jobId && !uploadMutation.isPending && (
         <div
           {...getRootProps()}
           className={`border-2 border-dashed rounded-xl p-12 text-center cursor-pointer transition-colors ${
@@ -106,12 +115,25 @@ export function ScanDocumentPage() {
             {isDragActive ? t("scanner.dropActive") : t("scanner.dropPrompt")}
           </p>
           <p className="text-sm text-gray-400">{t("scanner.formatHint")}</p>
-          {uploadMutation.isPending && <p className="mt-3 text-blue-600">{t("scanner.uploading")}</p>}
           {uploadMutation.isError && <p className="mt-3 text-red-500">{t("scanner.uploadFailed")}</p>}
         </div>
       )}
 
-      {/* Scan Progress */}
+      {/* AI Scanning Progress */}
+      {uploadMutation.isPending && (
+        <div className="bg-white rounded-xl p-8 text-center shadow-sm border border-gray-100">
+          <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Sparkles className="w-8 h-8 text-blue-500 animate-pulse" />
+          </div>
+          <p className="text-lg font-medium text-gray-900">{t("scanner.scanning")}</p>
+          <p className="text-sm text-gray-500 mt-1">{t("scanner.scanningDesc")}</p>
+          <div className="mt-4 w-48 mx-auto h-1.5 bg-gray-100 rounded-full overflow-hidden">
+            <div className="h-full bg-blue-500 rounded-full animate-pulse" style={{ width: "70%" }} />
+          </div>
+        </div>
+      )}
+
+      {/* Fallback manual review */}
       {jobId && scanStatus && (
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
           <div className="flex items-center gap-3 mb-4">
@@ -127,7 +149,6 @@ export function ScanDocumentPage() {
             <p className="text-sm text-red-500 mb-4">{scanStatus.error_message}</p>
           )}
 
-          {/* Extracted Fields */}
           {scanStatus.extracted_fields && (
             <div className="space-y-3">
               <h3 className="font-medium text-gray-900">{t("scanner.extractedInfo")}</h3>

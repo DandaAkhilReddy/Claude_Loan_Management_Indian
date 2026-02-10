@@ -102,6 +102,51 @@ async def analyze(
     )
 
 
+@router.get("/dashboard-summary")
+async def dashboard_summary(
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Auto-run optimization summary for dashboard."""
+    repo = LoanRepository(db)
+    loans = await repo.list_by_user(user.id, status="active")
+
+    if not loans:
+        return {"has_loans": False}
+
+    total_emi = sum(float(l.emi_amount) for l in loans)
+    default_extra = Decimal(str(round(total_emi * 0.1, 2)))
+
+    country = user.country or "IN"
+    snapshots = [_loan_to_snapshot(l, country) for l in loans]
+
+    optimizer = MultiLoanOptimizer(loans=snapshots, monthly_extra=default_extra)
+    result = optimizer.optimize(strategies=["avalanche", "snowball", "smart_hybrid"], country=country)
+
+    best = next((s for s in result.strategies if s.strategy_name == result.recommended_strategy), None)
+
+    return {
+        "has_loans": True,
+        "loan_count": len(loans),
+        "total_debt": float(sum(Decimal(str(l.outstanding_principal)) for l in loans)),
+        "total_emi": total_emi,
+        "suggested_extra": float(default_extra),
+        "recommended_strategy": result.recommended_strategy,
+        "interest_saved": float(best.interest_saved_vs_baseline) if best else 0,
+        "months_saved": best.months_saved_vs_baseline if best else 0,
+        "debt_free_months": best.total_months if best else 0,
+        "baseline_months": result.baseline_total_months,
+        "strategies_preview": [
+            {
+                "name": s.strategy_name,
+                "interest_saved": float(s.interest_saved_vs_baseline),
+                "months_saved": s.months_saved_vs_baseline,
+            }
+            for s in result.strategies
+        ],
+    }
+
+
 @router.post("/quick-compare", response_model=QuickCompareResponse)
 async def quick_compare(
     req: QuickCompareRequest,

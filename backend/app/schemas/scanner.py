@@ -7,6 +7,7 @@ from pydantic import BaseModel
 
 class UploadResponse(BaseModel):
     job_id: UUID
+    loan_id: str | None = None
     status: str = "uploaded"
     message: str = "Document uploaded. Processing will begin shortly."
 

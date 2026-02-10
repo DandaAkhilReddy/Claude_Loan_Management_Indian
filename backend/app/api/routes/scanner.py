@@ -54,7 +54,8 @@ async def upload_document(
         mime_type=file.content_type,
     )
 
-    # Trigger OCR (in production, this would be async via Azure Functions)
+    # Trigger OCR and auto-create loan
+    created_loan_id = None
     try:
         await repo.update_status(job.id, user.id, "processing")
         scanner = ScannerService()
@@ -63,17 +64,44 @@ async def upload_document(
         extracted = {f.field_name: f.value for f in fields}
         confidences = {f.field_name: f.confidence for f in fields}
 
+        # Auto-create loan from extracted fields with smart defaults
+        if fields:
+            principal = float(extracted.get("principal_amount", "0").replace(",", "")) or 0
+            emi = float(extracted.get("emi_amount", "0").replace(",", "")) or 0
+            tenure = int(extracted.get("tenure_months", "0") or "0") or 240
+
+            loan_repo = LoanRepository(db)
+            loan = await loan_repo.create(
+                user_id=user.id,
+                bank_name=extracted.get("bank_name", "Unknown Bank"),
+                loan_type=extracted.get("loan_type", "personal"),
+                principal_amount=principal,
+                outstanding_principal=principal,
+                interest_rate=float(extracted.get("interest_rate", "0")) or 0,
+                interest_rate_type="floating",
+                tenure_months=tenure,
+                remaining_tenure_months=tenure,
+                emi_amount=emi,
+                source="scan",
+                source_scan_id=job.id,
+            )
+            created_loan_id = loan.id
+
         await repo.update_status(
             job.id,
             user.id,
             "completed" if fields else "review_needed",
             extracted_fields=extracted,
             confidence_scores=confidences,
+            created_loan_id=created_loan_id,
         )
     except Exception as e:
         await repo.update_status(job.id, user.id, "failed", error_message=str(e))
 
-    return UploadResponse(job_id=job.id)
+    return UploadResponse(
+        job_id=job.id,
+        loan_id=str(created_loan_id) if created_loan_id else None,
+    )
 
 
 @router.get("/status/{job_id}", response_model=ScanStatusResponse)

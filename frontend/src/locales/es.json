@@ -50,7 +50,21 @@
     "activeLoans": "préstamo(s) activo(s)",
     "perMonth": "por mes",
     "longestRemaining": "préstamo más largo restante",
-    "paid": "pagado"
+    "paid": "pagado",
+    "aiRecommendation": "Recomendación AI",
+    "youCouldSave": "Podrías ahorrar",
+    "inInterest": "en intereses",
+    "byPaying": "Pagando",
+    "extraPerMonth": "extra/mes",
+    "monthsFaster": "meses antes",
+    "viewStrategies": "Ver Estrategias",
+    "withOptimization": "con optimización",
+    "portfolioHealth": "Salud del Portafolio",
+    "avgRate": "Tasa de Interés Promedio",
+    "highestRisk": "Préstamo de Mayor Riesgo",
+    "debtToEmi": "Relación Deuda-Cuota",
+    "strategyPreview": "Comparación de Estrategias",
+    "aiInsight": "Análisis AI"
   },
   "loans": {
     "addLoan": "Agregar Préstamo",
@@ -161,7 +175,10 @@
     "statusProcessing": "Procesando...",
     "statusCompleted": "Completado",
     "statusReviewNeeded": "Revisión Necesaria",
-    "statusFailed": "Fallido"
+    "statusFailed": "Fallido",
+    "loanCreated": "¡Préstamo creado desde tu documento!",
+    "scanning": "AI está leyendo tu documento...",
+    "scanningDesc": "Extrayendo detalles del préstamo automáticamente"
   },
   "auth": {
     "signIn": "Iniciar Sesión",
@@ -226,5 +243,17 @@
     "headOfHousehold": "Jefe de Familia",
     "india": "India",
     "unitedStates": "Estados Unidos"
+  },
+  "chat": {
+    "title": "Asistente AI de Préstamos",
+    "openChat": "Abrir chat AI",
+    "closeChat": "Cerrar chat",
+    "welcome": "¡Hola! Soy tu asesor de préstamos",
+    "welcomeDesc": "Pregúntame sobre préstamos, ahorro fiscal o estrategias de repago",
+    "placeholder": "Pregunta sobre préstamos, impuestos, cuotas...",
+    "suggestion1": "¿Cómo reducir mi cuota?",
+    "suggestion2": "¿Qué es la Sección 80C?",
+    "suggestion3": "¿Mejor estrategia de prepago?",
+    "errorResponse": "Lo siento, no pude procesar eso. Por favor, inténtalo de nuevo."
   }
 }

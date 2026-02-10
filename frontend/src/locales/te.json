@@ -50,7 +50,21 @@
     "activeLoans": "యాక్టివ్ లోన్(లు)",
     "perMonth": "నెలకు",
     "longestRemaining": "ఎక్కువ కాలం మిగిలిన లోన్",
-    "paid": "చెల్లించారు"
+    "paid": "చెల్లించారు",
+    "aiRecommendation": "AI సిఫార్సు",
+    "youCouldSave": "మీరు ఆదా చేయగలరు",
+    "inInterest": "వడ్డీలో",
+    "byPaying": "చెల్లించడం ద్వారా",
+    "extraPerMonth": "అదనపు/నెల",
+    "monthsFaster": "నెలలు ముందుగా",
+    "viewStrategies": "వ్యూహాలు చూడండి",
+    "withOptimization": "ఆప్టిమైజేషన్ తో",
+    "portfolioHealth": "పోర్ట్‌ఫోలియో ఆరోగ్యం",
+    "avgRate": "సగటు వడ్డీ రేటు",
+    "highestRisk": "అత్యధిక రిస్క్ లోన్",
+    "debtToEmi": "అప్పు-EMI నిష్పత్తి",
+    "strategyPreview": "వ్యూహ పోలిక",
+    "aiInsight": "AI అంతర్దృష్టి"
   },
   "loans": {
     "addLoan": "లోన్ జోడించండి",
@@ -161,7 +175,10 @@
     "statusProcessing": "ప్రాసెస్ అవుతోంది...",
     "statusCompleted": "పూర్తయింది",
     "statusReviewNeeded": "సమీక్ష అవసరం",
-    "statusFailed": "విఫలమైంది"
+    "statusFailed": "విఫలమైంది",
+    "loanCreated": "మీ డాక్యుమెంట్ నుండి లోన్ సృష్టించబడింది!",
+    "scanning": "AI మీ డాక్యుమెంట్ చదువుతోంది...",
+    "scanningDesc": "లోన్ వివరాలు ఆటోమేటిక్‌గా సేకరిస్తోంది"
   },
   "auth": {
     "signIn": "సైన్ ఇన్",
@@ -226,5 +243,17 @@
     "headOfHousehold": "గృహ యజమాని",
     "india": "భారతదేశం",
     "unitedStates": "యునైటెడ్ స్టేట్స్"
+  },
+  "chat": {
+    "title": "లోన్ AI సహాయకుడు",
+    "openChat": "AI చాట్ తెరవండి",
+    "closeChat": "చాట్ మూసివేయండి",
+    "welcome": "హాయ్! నేను మీ లోన్ సలహాదారుడిని",
+    "welcomeDesc": "లోన్లు, పన్ను ఆదా, లేదా రీపేమెంట్ వ్యూహాల గురించి ఏమైనా అడగండి",
+    "placeholder": "లోన్, పన్ను, EMI గురించి అడగండి...",
+    "suggestion1": "EMI ఎలా తగ్గించాలి?",
+    "suggestion2": "సెక్షన్ 80C అంటే ఏమిటి?",
+    "suggestion3": "ఉత్తమ ప్రీపేమెంట్ వ్యూహం?",
+    "errorResponse": "క్షమించండి, ప్రాసెస్ చేయలేకపోయాం. దయచేసి మళ్ళీ ప్రయత్నించండి."
   }
 }
